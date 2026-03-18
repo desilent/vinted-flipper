@@ -507,6 +507,7 @@ async def analyze_listing(req: AnalyzeRequest):
     else:
         item = parse_item(raw_item)
         log.info(f"Got item: {item['brand']} - {item['title']} @ €{item['price']}")
+        log.info(f"Category: {item['category']} / {item['subcategory']} | Condition: {item['condition']}")
 
     # Step 2: Search for comparables
     brand = item.get("brand", "")

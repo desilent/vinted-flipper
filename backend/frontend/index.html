@@ -252,20 +252,29 @@ async function handleAnalyze() {
     const resp = await fetch('/api/analyze', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url}) });
     if(!resp.ok) { const e = await resp.json(); throw new Error(e.detail||'Analysis failed'); }
     const data = await resp.json();
+    console.log('API response:', JSON.stringify(data.item).substring(0, 500));
 
     // Fill form
     if(data.item.brand) { document.getElementById('brand').value = data.item.brand; document.getElementById('brand').classList.add('green-border'); }
     if(data.item.price>0) { document.getElementById('asking-price').value = data.item.price; document.getElementById('asking-price').classList.add('green-border'); }
     if(data.retail?.retail_price>0) { document.getElementById('retail-price').value = data.retail.retail_price; document.getElementById('retail-price').classList.add('green-border'); }
-    if(data.item.category && CATEGORIES[data.item.category]) {
-      document.getElementById('category').value = data.item.category;
+
+    // Fill category and subcategory
+    const itemCat = data.item.category;
+    const itemSubcat = data.item.subcategory;
+    console.log('Category:', itemCat, 'Subcategory:', itemSubcat);
+    if(itemCat && CATEGORIES[itemCat]) {
+      document.getElementById('category').value = itemCat;
       updateSubcats();
-      if(data.item.subcategory) {
-        const subOpts = Array.from(document.getElementById('subcategory').options);
-        const match = subOpts.find(o => o.value === data.item.subcategory);
-        if(match) document.getElementById('subcategory').value = data.item.subcategory;
+      if(itemSubcat) {
+        // Small delay to ensure subcats are populated
+        setTimeout(() => {
+          document.getElementById('subcategory').value = itemSubcat;
+        }, 50);
       }
     }
+
+    // Fill condition
     if(data.item.condition) {
       const condMap = {
         "Neu mit Etikett":"new_tags","Neu ohne Etikett":"new_no_tags","Sehr gut":"very_good","Gut":"good","Zufriedenstellend":"satisfactory",
@@ -278,6 +287,7 @@ async function handleAnalyze() {
         "Nowy z metką":"new_tags","Nowy bez metki":"new_no_tags","Bardzo dobry":"very_good","Dobry":"good","Zadowalający":"satisfactory"
       };
       const mapped = condMap[data.item.condition];
+      console.log('Condition:', data.item.condition, '→ mapped:', mapped);
       if(mapped) { selectedCondition=mapped; document.querySelectorAll('.chip').forEach(c=>{c.classList.toggle('active',c.textContent===CONDITIONS.find(x=>x.value===mapped)?.label)}); }
     }
     document.getElementById('eval-btn').disabled = false;
