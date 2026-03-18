@@ -257,6 +257,22 @@ async function handleAnalyze() {
     if(data.item.brand) { document.getElementById('brand').value = data.item.brand; document.getElementById('brand').classList.add('green-border'); }
     if(data.item.price>0) { document.getElementById('asking-price').value = data.item.price; document.getElementById('asking-price').classList.add('green-border'); }
     if(data.retail?.retail_price>0) { document.getElementById('retail-price').value = data.retail.retail_price; document.getElementById('retail-price').classList.add('green-border'); }
+    if(data.item.category && CATEGORIES[data.item.category]) {
+      document.getElementById('category').value = data.item.category;
+      updateSubcats();
+      if(data.item.subcategory) {
+        const subOpts = Array.from(document.getElementById('subcategory').options);
+        const match = subOpts.find(o => o.value === data.item.subcategory);
+        if(match) document.getElementById('subcategory').value = data.item.subcategory;
+      }
+    }
+    if(data.item.condition) {
+      const condMap = {"Neu mit Etikett":"new_tags","Neu ohne Etikett":"new_no_tags","Sehr gut":"very_good","Gut":"good","Zufriedenstellend":"satisfactory",
+        "Neuf avec étiquette":"new_tags","Neuf sans étiquette":"new_no_tags","Très bon état":"very_good","Bon état":"good","Satisfaisant":"satisfactory",
+        "New with tags":"new_tags","New without tags":"new_no_tags","Very good":"very_good","Good":"good","Satisfactory":"satisfactory"};
+      const mapped = condMap[data.item.condition];
+      if(mapped) { selectedCondition=mapped; document.querySelectorAll('.chip').forEach(c=>{c.classList.toggle('active',c.textContent===CONDITIONS.find(x=>x.value===mapped)?.label)}); }
+    }
     document.getElementById('eval-btn').disabled = false;
     document.getElementById('clear-btn').style.display = 'block';
     document.getElementById('divider-label').textContent = 'DETAILS (EDIT IF NEEDED)';
