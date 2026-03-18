@@ -62,28 +62,36 @@ class VintedClient:
             self.cookie = {}
 
     async def get_item(self, item_id: str) -> Optional[dict]:
-        """Fetch a single item's details by ID."""
+        """Fetch a single item's details by ID. Tries multiple endpoint formats."""
         async with httpx.AsyncClient(timeout=15) as client:
             if not self.cookie:
                 await self._refresh_cookie(client)
 
-            url = f"{self.api_url}/items/{item_id}?localize=false"
-            try:
-                resp = await client.get(url, headers=self.headers, cookies=self.cookie)
-                if resp.status_code == 401 or resp.status_code == 403:
-                    log.info("Cookie expired, refreshing...")
-                    await self._refresh_cookie(client)
-                    resp = await client.get(url, headers=self.headers, cookies=self.cookie)
+            # Try multiple URL formats - some domains need different params
+            urls_to_try = [
+                f"{self.api_url}/items/{item_id}",
+                f"{self.api_url}/items/{item_id}?localize=false",
+                f"{self.api_url}/items/{item_id}?localize=true",
+            ]
 
-                if resp.status_code == 200:
-                    data = resp.json()
-                    return data.get("item", data)
-                else:
-                    log.warning(f"Item fetch failed: {resp.status_code}")
-                    return None
-            except Exception as e:
-                log.error(f"Error fetching item {item_id}: {e}")
-                return None
+            for url in urls_to_try:
+                try:
+                    resp = await client.get(url, headers=self.headers, cookies=self.cookie)
+                    if resp.status_code in (401, 403):
+                        log.info("Cookie expired, refreshing...")
+                        await self._refresh_cookie(client)
+                        resp = await client.get(url, headers=self.headers, cookies=self.cookie)
+
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        return data.get("item", data)
+                    else:
+                        log.info(f"Item fetch attempt failed ({url}): {resp.status_code}")
+                except Exception as e:
+                    log.error(f"Error fetching item {item_id} from {url}: {e}")
+
+            log.warning(f"All item fetch attempts failed for {item_id}")
+            return None
 
     async def search(self, query: str, brand_ids: list = None, catalog_ids: list = None, per_page: int = 20) -> list:
         """Search Vinted catalog."""
@@ -497,11 +505,13 @@ async def analyze_listing(req: AnalyzeRequest):
         # Fallback: try to parse from URL slug
         search_terms = extract_search_terms(req.url)
         if search_terms:
+            cat, subcat = detect_category(search_terms, "", None)
             item = {
                 "id": item_id, "title": search_terms.title(), "brand": "",
                 "price": 0, "condition": "", "description": "", "url": req.url,
+                "category": cat, "subcategory": subcat,
             }
-            log.info(f"Item fetch failed, using URL slug: {search_terms}")
+            log.info(f"Item fetch failed, using URL slug: {search_terms} → {cat}/{subcat}")
         else:
             raise HTTPException(502, "Could not fetch item from Vinted. Try again in a moment.")
     else:
