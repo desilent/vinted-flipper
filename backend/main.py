@@ -192,23 +192,119 @@ def extract_search_terms(url: str) -> str:
 
 def parse_item(item: dict) -> dict:
     """Normalize a Vinted item response into our format."""
+    title = item.get("title", "")
+    description = item.get("description", "")
+    brand = item.get("brand_title", "") or (item.get("brand", {}).get("title", "") if isinstance(item.get("brand"), dict) else "")
+    catalog_id = item.get("catalog_id", "")
+
+    # Detect category and subcategory
+    cat, subcat = detect_category(title, description, catalog_id)
+
     return {
         "id": item.get("id"),
-        "title": item.get("title", ""),
-        "brand": item.get("brand_title", "") or (item.get("brand", {}).get("title", "") if isinstance(item.get("brand"), dict) else ""),
+        "title": title,
+        "brand": brand,
         "price": float(item.get("price", {}).get("amount", 0) if isinstance(item.get("price"), dict) else item.get("price", 0) or 0),
         "currency": item.get("price", {}).get("currency_code", "EUR") if isinstance(item.get("price"), dict) else item.get("currency", "EUR"),
         "size": item.get("size_title", "") or (item.get("size", {}).get("title", "") if isinstance(item.get("size"), dict) else ""),
         "condition": item.get("status", ""),
-        "description": item.get("description", ""),
+        "description": description,
         "url": item.get("url", ""),
         "photo": item.get("photo", {}).get("url", "") if isinstance(item.get("photo"), dict) else "",
         "photos": [p.get("url", "") for p in item.get("photos", []) if isinstance(p, dict)][:3],
         "favourite_count": item.get("favourite_count", 0),
         "view_count": item.get("view_count", 0),
-        "category": item.get("catalog_id", ""),
+        "category": cat,
+        "subcategory": subcat,
+        "catalog_id": catalog_id,
         "brand_id": item.get("brand_id", ""),
     }
+
+
+def detect_category(title: str, description: str = "", catalog_id=None) -> tuple:
+    """Detect category and subcategory from title/description text."""
+    text = f"{title} {description}".lower()
+
+    # Shoe keywords
+    shoe_words = {"sneaker", "trainer", "shoe", "boot", "sandal", "heel", "loafer",
+                  "jordan", "air max", "yeezy", "dunk", "schuh", "stiefel", "turnschuh",
+                  "chaussure", "basket", "botte", "sandale"}
+    # Bag keywords
+    bag_words = {"bag", "handbag", "backpack", "rucksack", "tote", "clutch", "crossbody",
+                 "purse", "tasche", "handtasche", "sac", "pochette"}
+    # Accessory keywords
+    acc_words = {"watch", "sunglasses", "belt", "scarf", "hat", "cap", "jewel",
+                 "necklace", "bracelet", "ring", "uhr", "sonnenbrille", "gürtel",
+                 "schal", "mütze", "montre", "lunettes", "ceinture", "chapeau"}
+
+    # Check shoes
+    if any(w in text for w in shoe_words):
+        cat = "Shoes"
+        if any(w in text for w in ("sneaker", "trainer", "jordan", "air max", "yeezy", "dunk", "turnschuh", "basket")):
+            return cat, "Sneakers"
+        elif any(w in text for w in ("boot", "stiefel", "botte")):
+            return cat, "Boots"
+        elif any(w in text for w in ("sandal", "sandale")):
+            return cat, "Sandals"
+        elif any(w in text for w in ("heel", "pump")):
+            return cat, "Heels"
+        elif any(w in text for w in ("loafer", "mokassin")):
+            return cat, "Loafers"
+        return cat, "Other"
+
+    # Check bags
+    if any(w in text for w in bag_words):
+        cat = "Bags"
+        if any(w in text for w in ("backpack", "rucksack")):
+            return cat, "Backpacks"
+        elif any(w in text for w in ("tote",)):
+            return cat, "Tote"
+        elif any(w in text for w in ("clutch", "pochette")):
+            return cat, "Clutch"
+        elif any(w in text for w in ("crossbody", "umhänge")):
+            return cat, "Crossbody"
+        return cat, "Handbags"
+
+    # Check accessories
+    if any(w in text for w in acc_words):
+        cat = "Accessories"
+        if any(w in text for w in ("watch", "uhr", "montre")):
+            return cat, "Watches"
+        elif any(w in text for w in ("sunglasses", "sonnenbrille", "lunettes")):
+            return cat, "Sunglasses"
+        elif any(w in text for w in ("belt", "gürtel", "ceinture")):
+            return cat, "Belts"
+        elif any(w in text for w in ("scarf", "schal", "foulard")):
+            return cat, "Scarves"
+        elif any(w in text for w in ("hat", "cap", "mütze", "chapeau", "beanie")):
+            return cat, "Hats"
+        elif any(w in text for w in ("jewel", "necklace", "bracelet", "ring", "schmuck", "kette")):
+            return cat, "Jewellery"
+        return cat, "Other"
+
+    # Default: Clothing
+    cat = "Clothing"
+    if any(w in text for w in ("jacket", "jacke", "veste", "track", "windbreaker", "bomber")):
+        return cat, "Jackets"
+    elif any(w in text for w in ("coat", "mantel", "parka", "manteau", "trench")):
+        return cat, "Coats"
+    elif any(w in text for w in ("hoodie", "hoody", "kapuzenpullover")):
+        return cat, "Hoodies"
+    elif any(w in text for w in ("sweater", "pullover", "knit", "sweatshirt", "pulli", "pull")):
+        return cat, "Sweaters"
+    elif any(w in text for w in ("jean", "denim", "jeans")):
+        return cat, "Jeans"
+    elif any(w in text for w in ("dress", "kleid", "robe")):
+        return cat, "Dresses"
+    elif any(w in text for w in ("t-shirt", "tshirt", "tee ", "t shirt")):
+        return cat, "T-Shirts"
+    elif any(w in text for w in ("blazer", "sakko")):
+        return cat, "Blazers"
+    elif any(w in text for w in ("short", "kurze hose")):
+        return cat, "Shorts"
+    elif any(w in text for w in ("skirt", "rock", "jupe")):
+        return cat, "Skirts"
+    return cat, "Other"
 
 def parse_search_item(item: dict) -> dict:
     """Parse a search result item (lighter data)."""
