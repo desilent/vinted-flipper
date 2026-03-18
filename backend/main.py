@@ -400,6 +400,21 @@ def get_condition_multiplier(condition: str) -> float:
     return CONDITION_MULTIPLIERS.get(condition, 0.75)
 
 
+# ─── Vinted fee calculation ───
+
+def vinted_buyer_fee(item_price: float) -> float:
+    """Buyer protection fee: 5% of item price + €0.70 fixed."""
+    return round(item_price * 0.05 + 0.70, 2)
+
+def total_buy_cost(item_price: float, shipping: float = 5.0) -> float:
+    """Total cost when YOU buy an item (price + buyer fee + shipping)."""
+    return round(item_price + vinted_buyer_fee(item_price) + shipping, 2)
+
+def seller_earnings(sell_price: float) -> float:
+    """What you keep when you sell (Vinted has no seller fees, you keep 100%)."""
+    return sell_price
+
+
 # ─── Evaluation logic ───
 
 def evaluate(item: dict, comparables: list, retail_price: float = None, condition_mult: float = 0.75) -> dict:
@@ -409,28 +424,44 @@ def evaluate(item: dict, comparables: list, retail_price: float = None, conditio
 
     # Calculate market value from comparables
     comp_prices = [c["price"] for c in comparables if c.get("price", 0) > 0]
-    avg_resale = round(sum(comp_prices) / len(comp_prices), 2) if comp_prices else None
 
-    if avg_resale and avg_resale > 0:
-        market_value = avg_resale
-    elif retail_price and retail_price > 0:
-        market_value = retail_price * condition_mult
+    # Use median instead of average to filter out outliers
+    if comp_prices:
+        sorted_prices = sorted(comp_prices)
+        mid = len(sorted_prices) // 2
+        median_resale = sorted_prices[mid] if len(sorted_prices) % 2 != 0 else (sorted_prices[mid-1] + sorted_prices[mid]) / 2
+        avg_resale = round(sum(comp_prices) / len(comp_prices), 2)
+        # Use median as primary, avg as secondary info
+        market_value = round(median_resale, 2)
     else:
-        tier_estimates = {"luxury": 350, "premium": 120, "mid": 70, "fast_fashion": 25, "standard": 50}
-        market_value = tier_estimates.get(tier_name, 50) * condition_mult
+        avg_resale = None
+        median_resale = None
+        if retail_price and retail_price > 0:
+            market_value = round(retail_price * condition_mult, 2)
+        else:
+            tier_estimates = {"luxury": 350, "premium": 120, "mid": 70, "fast_fashion": 25, "standard": 50}
+            market_value = round(tier_estimates.get(tier_name, 50) * condition_mult, 2)
 
-    suggested_buy_max = round(market_value * (1 - margin), 2)
+    # Sell prices: what you'd list the item for
     suggested_sell_min = round(market_value * 0.9, 2)
     suggested_sell_max = round(market_value * 1.15, 2)
 
-    vinted_fee = lambda p: round(p * 0.05 + 0.70, 2)
-    buy_price = asking_price if asking_price > 0 else suggested_buy_max
+    # Buy max: what you should pay MAX to have good margin
+    # You keep 100% of sell price (no seller fee), but you PAY buyer fee + shipping when buying
+    shipping_est = 5.0  # estimated shipping cost
+    buy_fee = vinted_buyer_fee(asking_price if asking_price > 0 else market_value * 0.5)
+    suggested_buy_max = round(market_value * (1 - margin), 2)
 
-    profit_min = round(suggested_sell_min - buy_price - vinted_fee(suggested_sell_min), 2)
-    profit_max = round(suggested_sell_max - buy_price - vinted_fee(suggested_sell_max), 2)
+    # Actual costs and profit
+    buy_price = asking_price if asking_price > 0 else suggested_buy_max
+    total_cost = total_buy_cost(buy_price, shipping_est)  # what you actually spend to acquire
+
+    # Profit = sell price (you keep 100%) - total acquisition cost
+    profit_min = round(seller_earnings(suggested_sell_min) - total_cost, 2)
+    profit_max = round(seller_earnings(suggested_sell_max) - total_cost, 2)
 
     if buy_price > 0:
-        roi = profit_max / buy_price
+        roi = profit_max / total_cost if total_cost > 0 else 0
         if roi > 0.4:
             verdict, verdict_color = "GREAT DEAL", "#10b981"
         elif roi > 0.2:
@@ -447,18 +478,29 @@ def evaluate(item: dict, comparables: list, retail_price: float = None, conditio
     return {
         "tier": tier_name,
         "margin": margin,
-        "market_value": round(market_value, 2),
+        "market_value": market_value,
         "suggested_buy_max": suggested_buy_max,
         "suggested_sell_min": suggested_sell_min,
         "suggested_sell_max": suggested_sell_max,
-        "vinted_fee_est": vinted_fee(suggested_sell_max),
+        # Fee breakdown
+        "buyer_fee": vinted_buyer_fee(buy_price),
+        "shipping_est": shipping_est,
+        "total_buy_cost": total_cost,
+        "seller_fee": 0.0,  # Vinted has no seller fees
+        "you_keep_min": seller_earnings(suggested_sell_min),
+        "you_keep_max": seller_earnings(suggested_sell_max),
+        # Profit
         "profit_min": profit_min,
         "profit_max": profit_max,
-        "roi": round((profit_max / buy_price) * 100, 1) if buy_price > 0 else 0,
+        "roi": round((profit_max / total_cost) * 100, 1) if total_cost > 0 else 0,
         "verdict": verdict,
         "verdict_color": verdict_color,
+        # Market data
         "avg_resale": avg_resale,
-        "data_source": "comparables" if avg_resale else ("retail" if retail_price else "estimate"),
+        "median_resale": round(median_resale, 2) if median_resale else None,
+        "num_comparables": len(comp_prices),
+        "price_range": {"low": round(min(comp_prices), 2), "high": round(max(comp_prices), 2)} if comp_prices else None,
+        "data_source": "comparables" if comp_prices else ("retail" if retail_price else "estimate"),
     }
 
 

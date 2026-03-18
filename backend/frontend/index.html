@@ -363,7 +363,7 @@ function renderResults(data) {
   // AI insight
   if(retail?.notes) html += `<div class="insight"><b style="color:#a5b4fc">💡 </b>${retail.notes}</div>`;
 
-  // Retail + Avg resale
+  // Retail + Avg resale + Market data
   html += `<div class="grid2" style="margin-bottom:12px">
     <div class="card" style="padding:10px 12px">
       <div class="label" style="margin-bottom:3px">Retail Price</div>
@@ -371,10 +371,34 @@ function renderResults(data) {
       ${retail?.source?`<div style="font-size:9px;color:var(--muted);margin-top:2px">${retail.source}</div>`:''}
     </div>
     <div class="card" style="padding:10px 12px">
-      <div class="label" style="margin-bottom:3px">Avg Resale</div>
-      <div class="mono" style="font-size:16px;font-weight:700;color:${ev.avg_resale?'#10b981':'var(--muted)'}">${ev.avg_resale?'€'+ev.avg_resale.toFixed(0):'—'}</div>
-      <div style="font-size:9px;color:var(--muted);margin-top:2px">${ev.data_source}</div>
+      <div class="label" style="margin-bottom:3px">Market Value</div>
+      <div class="mono" style="font-size:16px;font-weight:700;color:${ev.market_value?'#10b981':'var(--muted)'}">${ev.market_value?'€'+ev.market_value.toFixed(0):'—'}</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:2px">${ev.median_resale ? 'median of '+ev.num_comparables+' listings' : ev.data_source}</div>
     </div>
+  </div>`;
+
+  // Fee breakdown
+  if(ev.total_buy_cost > 0) {
+    html += `<div class="card" style="padding:12px 14px;margin-bottom:12px">
+      <div class="label" style="margin-bottom:8px">Cost Breakdown (when you buy)</div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:var(--text)">
+        <span>Item price</span><span class="mono">€${(ev.total_buy_cost - ev.buyer_fee - ev.shipping_est).toFixed(2)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:var(--muted)">
+        <span>+ Buyer protection (5% + €0.70)</span><span class="mono">€${ev.buyer_fee.toFixed(2)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:var(--muted)">
+        <span>+ Shipping (est.)</span><span class="mono">€${ev.shipping_est.toFixed(2)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;border-top:1px solid var(--border);padding-top:6px;margin-top:4px;color:var(--text)">
+        <span>Total acquisition cost</span><span class="mono">€${ev.total_buy_cost.toFixed(2)}</span>
+      </div>
+    </div>`;
+  }
+
+  // Seller note
+  html += `<div style="font-size:11px;color:#34d399;text-align:center;margin-bottom:12px;padding:6px;background:#10b98108;border-radius:6px">
+    Vinted has no seller fees — you keep 100% of the sell price
   </div>`;
 
   // Comparables
@@ -408,7 +432,9 @@ function renderResults(data) {
   });
   html += `</div>`;
 
-  html += `<div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:16px">Vinted fee est. ~€${ev.vinted_fee_est.toFixed(2)} · Shipping not included</div>`;
+  html += `<div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:16px">
+    ${ev.price_range ? 'Comparable range: €'+ev.price_range.low.toFixed(0)+'–€'+ev.price_range.high.toFixed(0)+' · ' : ''}Profit = sell price − total acquisition cost
+  </div>`;
   html += `<button class="save-btn" onclick="handleSave()">+ Save to Watchlist</button>`;
   html += `</div>`;
 
