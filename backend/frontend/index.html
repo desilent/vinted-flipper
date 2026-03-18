@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vinted Flipper</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0d0d0f; --card:#161619; --input:#1c1c20; --border:#2a2a30; --text:#e8e8ec; --muted:#6b6b78; --accent:#6366f1; --bar:#1e1e24; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  .mono { font-family:'DM Mono',monospace; }
+  input,select,button { font-family:inherit; }
+  input,select { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border); background:var(--input); color:var(--text); font-size:14px; outline:none; transition:border-color .2s; }
+  input:focus,select:focus { border-color:var(--accent); }
+  input::placeholder { color:#4a4a56; }
+  select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%23888' fill='none' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px; }
+  .label { font-size:11px; font-weight:600; color:var(--muted); letter-spacing:.5px; text-transform:uppercase; margin-bottom:5px; display:block; }
+  .btn { padding:13px 20px; border-radius:10px; border:none; font-size:15px; font-weight:700; cursor:pointer; transition:all .2s; }
+  .btn-primary { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; box-shadow:0 4px 20px #6366f133; }
+  .btn-primary:disabled { background:#2a2a30; color:#555; box-shadow:none; cursor:default; }
+  .btn-secondary { background:transparent; border:1px solid var(--border); color:var(--muted); padding:13px 18px; font-size:13px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .fade-in { animation:fadeSlide .5s ease; }
+  @keyframes fadeSlide { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .spinner { width:16px; height:16px; border:2px solid #6366f133; border-top-color:#6366f1; border-radius:50%; animation:spin .6s linear infinite; display:inline-block; }
+
+  /* Layout */
+  .header { padding:24px 20px 16px; border-bottom:1px solid var(--border); background:linear-gradient(180deg,#121215,var(--bg)); }
+  .tabs { display:flex; gap:4px; background:var(--input); border-radius:10px; padding:3px; }
+  .tab { flex:1; padding:9px 0; border-radius:8px; border:none; background:transparent; color:var(--muted); font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; }
+  .tab.active { background:var(--accent); color:#fff; }
+  .content { padding:20px; max-width:480px; margin:0 auto; }
+
+  /* AI section */
+  .ai-box { padding:16px; margin-bottom:20px; border-radius:12px; background:linear-gradient(135deg,#6366f108,#8b5cf608); border:1px solid #6366f122; }
+  .ai-label { display:flex; align-items:center; gap:6px; margin-bottom:10px; font-size:12px; font-weight:700; color:#a5b4fc; letter-spacing:.3px; }
+  .ai-row { display:flex; gap:8px; }
+  .ai-row input { flex:1; font-size:12px; background:#0d0d0f; }
+  .ai-btn { padding:10px 16px; border-radius:8px; border:none; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; min-width:80px; transition:all .2s; }
+  .ai-btn:disabled { background:#2a2a30; color:#555; }
+  .status-msg { margin-top:10px; padding:10px 12px; border-radius:8px; font-size:12px; animation:fadeSlide .3s ease; }
+  .status-loading { background:#6366f10a; border:1px solid #6366f115; color:#a5b4fc; }
+  .status-error { background:#e74c3c0a; border:1px solid #e74c3c22; color:#f87171; }
+  .status-success { background:#10b98108; border:1px solid #10b98122; color:#34d399; }
+
+  /* Condition chips */
+  .chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .chip { padding:7px 12px; border-radius:8px; font-size:12px; font-weight:600; border:1px solid var(--border); background:var(--card); color:var(--muted); cursor:pointer; transition:all .2s; }
+  .chip.active { border-color:var(--accent); background:#6366f118; color:var(--accent); }
+
+  /* Price bar */
+  .bar-row { margin-bottom:10px; }
+  .bar-label { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:4px; }
+  .bar-track { height:6px; background:var(--bar); border-radius:3px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:3px; transition:width .6s ease; }
+
+  /* Comparables */
+  .comp-item { display:flex; justify-content:space-between; align-items:center; padding:8px 10px; margin-bottom:4px; border-radius:6px; font-size:12px; }
+  .comp-item:nth-child(odd) { background:var(--card); }
+  .comp-title { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .comp-price { font-weight:700; color:#10b981; margin-left:8px; }
+
+  /* Verdict */
+  .verdict-box { text-align:center; padding:20px 16px; margin-bottom:20px; border-radius:12px; }
+  .verdict-label { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+  .verdict-text { font-size:28px; font-weight:800; }
+  .verdict-sub { font-size:12px; color:var(--muted); margin-top:4px; }
+
+  /* Stat grid */
+  .stat-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:20px; }
+  .stat { text-align:center; padding:14px 8px; }
+  .stat-label { font-size:11px; color:var(--muted); margin-bottom:4px; }
+  .stat-value { font-size:18px; font-weight:700; }
+
+  /* Watchlist */
+  .wl-item { margin-bottom:10px; }
+  .wl-top { display:flex; justify-content:space-between; align-items:flex-start; }
+  .wl-brand { font-weight:700; font-size:14px; margin-bottom:2px; }
+  .wl-title { font-size:11px; color:var(--muted); margin-bottom:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .wl-meta { font-size:12px; color:var(--muted); }
+  .wl-badge { font-size:12px; font-weight:700; padding:2px 8px; border-radius:6px; flex-shrink:0; margin-left:8px; }
+  .wl-prices { display:flex; gap:16px; margin-top:10px; font-size:12px; color:var(--muted); }
+  .wl-link { margin-top:6px; font-size:11px; }
+  .wl-link a { color:#6366f1; text-decoration:none; }
+  .wl-footer { display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+  .wl-date { font-size:10px; color:var(--muted); }
+  .wl-remove { background:none; border:none; color:#e74c3c; cursor:pointer; font-size:11px; padding:2px 6px; }
+  .divider { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .divider-line { flex:1; height:1px; background:var(--border); }
+  .divider-text { font-size:10px; color:var(--muted); letter-spacing:1px; }
+  .green-border { border-color:#10b98144 !important; }
+  .save-btn { width:100%; padding:12px; border:1px dashed var(--border); border-radius:10px; background:transparent; color:var(--muted); cursor:pointer; font-size:13px; transition:all .2s; }
+  .save-btn:hover { border-color:#6366f1; color:#6366f1; }
+  .empty { text-align:center; padding:60px 20px; color:var(--muted); }
+  .empty-icon { font-size:36px; margin-bottom:12px; }
+  .insight { padding:12px 14px; margin-bottom:12px; border-radius:10px; background:#6366f10a; border:1px solid #6366f118; font-size:12px; color:#c4b5fd; line-height:1.5; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Header -->
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff" class="mono">V</div>
+      <div>
+        <div style="font-size:18px;font-weight:800;letter-spacing:-.5px">Vinted Flipper</div>
+        <div style="font-size:11px;color:var(--muted)" id="subtitle">AI-powered resale evaluator</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('evaluate')" id="tab-evaluate">Evaluate</button>
+      <button class="tab" onclick="switchTab('watchlist')" id="tab-watchlist">Watchlist (<span id="wl-count">0</span>)</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Evaluate tab -->
+    <div id="panel-evaluate">
+      <!-- AI Section -->
+      <div class="ai-box">
+        <div class="ai-label">✨ <span>AI PRICE ANALYSIS</span></div>
+        <span class="label" style="margin-bottom:6px">Paste a Vinted listing URL</span>
+        <div class="ai-row">
+          <input type="url" id="url-input" placeholder="https://www.vinted.de/items/...">
+          <button class="ai-btn" id="analyze-btn" onclick="handleAnalyze()" disabled>Analyze</button>
+        </div>
+        <div id="status-area"></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:8px">
+          Fetches item details, finds comparable listings & retail price
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="divider">
+        <div class="divider-line"></div>
+        <span class="divider-text" id="divider-label">OR FILL MANUALLY</span>
+        <div class="divider-line"></div>
+      </div>
+
+      <!-- Form -->
+      <div style="margin-bottom:16px">
+        <span class="label">Brand *</span>
+        <input id="brand" placeholder="e.g. Nike, Gucci, Zara...">
+      </div>
+      <div class="grid2" style="margin-bottom:16px">
+        <div><span class="label">Category</span><select id="category" onchange="updateSubcats()"></select></div>
+        <div><span class="label">Type</span><select id="subcategory"></select></div>
+      </div>
+      <div style="margin-bottom:16px">
+        <span class="label">Condition</span>
+        <div class="chips" id="condition-chips"></div>
+      </div>
+      <div class="grid2" style="margin-bottom:20px">
+        <div><span class="label">Asking Price (€)</span><input type="number" id="asking-price" placeholder="0.00"></div>
+        <div><span class="label">Retail Price (€)</span><input type="number" id="retail-price" placeholder="AI will find"></div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:24px">
+        <button class="btn btn-primary" style="flex:1" id="eval-btn" onclick="handleEvaluate()" disabled>Evaluate</button>
+        <button class="btn btn-secondary" id="clear-btn" onclick="handleClear()" style="display:none">Clear</button>
+      </div>
+
+      <div id="results-area"></div>
+    </div>
+
+    <!-- Watchlist tab -->
+    <div id="panel-watchlist" style="display:none">
+      <div id="watchlist-area"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── State ───
+let state = {
+  watchlist: JSON.parse(localStorage.getItem('vinted-watchlist') || '[]'),
+  lastResult: null,
+  lastItem: null,
+  autoFilled: false,
+};
+
+const CATEGORIES = {
+  Clothing: ["T-Shirts","Jeans","Dresses","Jackets","Sweaters","Hoodies","Skirts","Shorts","Coats","Blazers","Other"],
+  Shoes: ["Sneakers","Boots","Sandals","Heels","Loafers","Other"],
+  Bags: ["Handbags","Backpacks","Crossbody","Tote","Clutch","Other"],
+  Accessories: ["Watches","Sunglasses","Belts","Scarves","Jewellery","Hats","Other"],
+};
+const CONDITIONS = [
+  {label:"New with tags",value:"new_tags"},{label:"New without tags",value:"new_no_tags"},
+  {label:"Very good",value:"very_good"},{label:"Good",value:"good"},{label:"Satisfactory",value:"satisfactory"},
+];
+let selectedCondition = "very_good";
+
+// ─── Init ───
+function init() {
+  const catSel = document.getElementById('category');
+  Object.keys(CATEGORIES).forEach(c => { const o = document.createElement('option'); o.value=c; o.textContent=c; catSel.appendChild(o); });
+  updateSubcats();
+
+  const chips = document.getElementById('condition-chips');
+  CONDITIONS.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (c.value===selectedCondition?' active':'');
+    b.textContent = c.label;
+    b.onclick = () => { selectedCondition=c.value; document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); b.classList.add('active'); };
+    chips.appendChild(b);
+  });
+
+  document.getElementById('url-input').addEventListener('input', e => {
+    document.getElementById('analyze-btn').disabled = !e.target.value.trim();
+  });
+  document.getElementById('brand').addEventListener('input', e => {
+    document.getElementById('eval-btn').disabled = !e.target.value.trim();
+  });
+
+  updateWatchlistCount();
+}
+
+function updateSubcats() {
+  const cat = document.getElementById('category').value;
+  const sub = document.getElementById('subcategory');
+  sub.innerHTML = '';
+  (CATEGORIES[cat]||[]).forEach(s => { const o=document.createElement('option'); o.value=s; o.textContent=s; sub.appendChild(o); });
+}
+
+// ─── Tab switching ───
+function switchTab(tab) {
+  document.getElementById('panel-evaluate').style.display = tab==='evaluate'?'block':'none';
+  document.getElementById('panel-watchlist').style.display = tab==='watchlist'?'block':'none';
+  document.getElementById('tab-evaluate').className = 'tab'+(tab==='evaluate'?' active':'');
+  document.getElementById('tab-watchlist').className = 'tab'+(tab==='watchlist'?' active':'');
+  if(tab==='watchlist') renderWatchlist();
+}
+
+// ─── API calls ───
+async function handleAnalyze() {
+  const url = document.getElementById('url-input').value.trim();
+  if(!url) return;
+
+  const btn = document.getElementById('analyze-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  showStatus('loading', '🔍 Analyzing listing — fetching item, comparables & retail price...');
+  document.getElementById('results-area').innerHTML = '';
+  state.lastResult = null;
+
+  try {
+    const resp = await fetch('/api/analyze', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url}) });
+    if(!resp.ok) { const e = await resp.json(); throw new Error(e.detail||'Analysis failed'); }
+    const data = await resp.json();
+
+    // Fill form
+    if(data.item.brand) { document.getElementById('brand').value = data.item.brand; document.getElementById('brand').classList.add('green-border'); }
+    if(data.item.price>0) { document.getElementById('asking-price').value = data.item.price; document.getElementById('asking-price').classList.add('green-border'); }
+    if(data.retail?.retail_price>0) { document.getElementById('retail-price').value = data.retail.retail_price; document.getElementById('retail-price').classList.add('green-border'); }
+    document.getElementById('eval-btn').disabled = false;
+    document.getElementById('clear-btn').style.display = 'block';
+    document.getElementById('divider-label').textContent = 'DETAILS (EDIT IF NEEDED)';
+
+    state.autoFilled = true;
+    state.lastItem = data.item;
+    state.lastResult = data;
+
+    let msg = `✓ Analysis complete — ${data.item.brand||'Unknown'}: "${data.item.title}"`;
+    if(data.comparables?.length) msg += ` · ${data.comparables.length} comparables found`;
+    showStatus('success', msg);
+
+    renderResults(data);
+  } catch(e) {
+    showStatus('error', e.message || 'Analysis failed. Check the URL or try again.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Analyze';
+  }
+}
+
+async function handleEvaluate() {
+  const brand = document.getElementById('brand').value.trim();
+  if(!brand) return;
+
+  if(state.lastResult && state.autoFilled) {
+    renderResults(state.lastResult);
+    return;
+  }
+
+  const btn = document.getElementById('eval-btn');
+  btn.disabled = true; btn.textContent = 'Evaluating...';
+
+  try {
+    const resp = await fetch('/api/evaluate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        brand, title: document.getElementById('subcategory').value,
+        price: parseFloat(document.getElementById('asking-price').value)||0,
+        condition: selectedCondition,
+        retail_price: parseFloat(document.getElementById('retail-price').value)||0,
+      })
+    });
+    const data = await resp.json();
+    state.lastResult = data;
+    state.lastItem = data.item;
+    document.getElementById('clear-btn').style.display = 'block';
+    renderResults(data);
+  } catch(e) {
+    showStatus('error', 'Evaluation failed');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Evaluate';
+  }
+}
+
+// ─── Render results ───
+function renderResults(data) {
+  const {evaluation:ev, comparables:comps, retail} = data;
+  const maxRange = ev.suggested_sell_max * 1.3;
+  const roi = ev.roi || 0;
+
+  let html = `<div class="fade-in">`;
+
+  // Verdict
+  html += `<div class="verdict-box card" style="background:${ev.verdict_color}11;border-color:${ev.verdict_color}33">
+    <div class="verdict-label">Verdict</div>
+    <div class="verdict-text mono" style="color:${ev.verdict_color}">${ev.verdict}</div>
+    <div class="verdict-sub">${ev.tier} tier · ${ev.data_source} pricing</div>
+  </div>`;
+
+  // AI insight
+  if(retail?.notes) html += `<div class="insight"><b style="color:#a5b4fc">💡 </b>${retail.notes}</div>`;
+
+  // Retail + Avg resale
+  html += `<div class="grid2" style="margin-bottom:12px">
+    <div class="card" style="padding:10px 12px">
+      <div class="label" style="margin-bottom:3px">Retail Price</div>
+      <div class="mono" style="font-size:16px;font-weight:700;color:${retail?.retail_price?'var(--text)':'var(--muted)'}">${retail?.retail_price?'€'+retail.retail_price:'—'}</div>
+      ${retail?.source?`<div style="font-size:9px;color:var(--muted);margin-top:2px">${retail.source}</div>`:''}
+    </div>
+    <div class="card" style="padding:10px 12px">
+      <div class="label" style="margin-bottom:3px">Avg Resale</div>
+      <div class="mono" style="font-size:16px;font-weight:700;color:${ev.avg_resale?'#10b981':'var(--muted)'}">${ev.avg_resale?'€'+ev.avg_resale.toFixed(0):'—'}</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:2px">${ev.data_source}</div>
+    </div>
+  </div>`;
+
+  // Comparables
+  if(comps && comps.length > 0) {
+    html += `<div style="margin-bottom:16px"><div class="label" style="margin-bottom:8px">Similar Listings (${comps.length})</div>`;
+    comps.slice(0,8).forEach(c => {
+      html += `<div class="comp-item">
+        <div class="comp-title">${c.title||'—'}</div>
+        <div class="comp-price mono">€${(c.price||0).toFixed(0)}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Price bars
+  html += `<div style="padding:0 4px;margin-bottom:20px">`;
+  [{l:'Buy Below',v:ev.suggested_buy_max,c:'#6366f1'},{l:'Sell Low',v:ev.suggested_sell_min,c:'#f59e0b'},{l:'Sell High',v:ev.suggested_sell_max,c:'#10b981'}].forEach(b => {
+    const pct = maxRange>0 ? Math.min((b.v/maxRange)*100,100) : 50;
+    html += `<div class="bar-row"><div class="bar-label"><span>${b.l}</span><span class="mono" style="font-weight:700;color:${b.c};font-size:14px">€${b.v.toFixed(2)}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(pct,4)}%;background:${b.c}"></div></div></div>`;
+  });
+  html += `</div>`;
+
+  // Stats
+  html += `<div class="stat-grid">`;
+  [{l:'Profit (low)',v:`€${ev.profit_min.toFixed(2)}`,c:ev.profit_min>0?'#10b981':'#e74c3c'},
+   {l:'Profit (high)',v:`€${ev.profit_max.toFixed(2)}`,c:ev.profit_max>0?'#10b981':'#e74c3c'},
+   {l:'ROI',v:`${roi.toFixed(0)}%`,c:roi>20?'#10b981':roi>0?'#f59e0b':'#e74c3c'}
+  ].forEach(s => {
+    html += `<div class="stat card"><div class="stat-label">${s.l}</div><div class="stat-value mono" style="color:${s.c}">${s.v}</div></div>`;
+  });
+  html += `</div>`;
+
+  html += `<div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:16px">Vinted fee est. ~€${ev.vinted_fee_est.toFixed(2)} · Shipping not included</div>`;
+  html += `<button class="save-btn" onclick="handleSave()">+ Save to Watchlist</button>`;
+  html += `</div>`;
+
+  document.getElementById('results-area').innerHTML = html;
+}
+
+// ─── Watchlist ───
+function handleSave() {
+  if(!state.lastResult) return;
+  const ev = state.lastResult.evaluation;
+  const item = state.lastItem || state.lastResult.item;
+  const entry = {
+    id: Date.now(),
+    brand: document.getElementById('brand').value,
+    subcategory: document.getElementById('subcategory').value,
+    title: item?.title||'',
+    condition: CONDITIONS.find(c=>c.value===selectedCondition)?.label||selectedCondition,
+    tier: ev.tier,
+    verdict: ev.verdict, verdictColor: ev.verdict_color,
+    suggestedBuyMax: ev.suggested_buy_max.toFixed(2),
+    sellRange: `${ev.suggested_sell_min.toFixed(0)}–${ev.suggested_sell_max.toFixed(0)}`,
+    profitMax: ev.profit_max.toFixed(2),
+    url: document.getElementById('url-input').value.trim()||null,
+    date: new Date().toLocaleDateString('de-DE'),
+  };
+  state.watchlist.unshift(entry);
+  localStorage.setItem('vinted-watchlist', JSON.stringify(state.watchlist));
+  updateWatchlistCount();
+  switchTab('watchlist');
+}
+
+function removeFromWatchlist(i) {
+  state.watchlist.splice(i,1);
+  localStorage.setItem('vinted-watchlist', JSON.stringify(state.watchlist));
+  updateWatchlistCount();
+  renderWatchlist();
+}
+
+function renderWatchlist() {
+  const area = document.getElementById('watchlist-area');
+  if(!state.watchlist.length) {
+    area.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div style="font-size:14px">No saved items yet</div><div style="font-size:12px;margin-top:4px">Evaluate an item and save it here</div></div>';
+    return;
+  }
+  area.innerHTML = state.watchlist.map((w,i) => `
+    <div class="card wl-item fade-in">
+      <div class="wl-top">
+        <div style="flex:1;min-width:0">
+          <div class="wl-brand">${w.brand} — ${w.subcategory}</div>
+          ${w.title?`<div class="wl-title">${w.title}</div>`:''}
+          <div class="wl-meta">${w.condition} · ${w.tier}</div>
+        </div>
+        <div class="wl-badge" style="background:${w.verdictColor}22;color:${w.verdictColor}">${w.verdict}</div>
+      </div>
+      <div class="wl-prices">
+        <span>Buy ≤ <b style="color:var(--text)">€${w.suggestedBuyMax}</b></span>
+        <span>Sell <b style="color:var(--text)">€${w.sellRange}</b></span>
+        <span>Profit <b style="color:${parseFloat(w.profitMax)>0?'#10b981':'#e74c3c'}">€${w.profitMax}</b></span>
+      </div>
+      ${w.url?`<div class="wl-link"><a href="${w.url}" target="_blank" rel="noopener">View listing →</a></div>`:''}
+      <div class="wl-footer">
+        <span class="wl-date">${w.date}</span>
+        <button class="wl-remove" onclick="removeFromWatchlist(${i})">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateWatchlistCount() {
+  document.getElementById('wl-count').textContent = state.watchlist.length;
+}
+
+// ─── Utils ───
+function showStatus(type, msg) {
+  const cls = type==='loading'?'status-loading':type==='error'?'status-error':'status-success';
+  document.getElementById('status-area').innerHTML = `<div class="status-msg ${cls}">${msg}</div>`;
+}
+
+function handleClear() {
+  document.getElementById('brand').value='';
+  document.getElementById('asking-price').value='';
+  document.getElementById('retail-price').value='';
+  document.getElementById('url-input').value='';
+  document.getElementById('results-area').innerHTML='';
+  document.getElementById('status-area').innerHTML='';
+  document.getElementById('clear-btn').style.display='none';
+  document.getElementById('divider-label').textContent='OR FILL MANUALLY';
+  document.querySelectorAll('.green-border').forEach(e=>e.classList.remove('green-border'));
+  state.lastResult=null; state.lastItem=null; state.autoFilled=false;
+  document.getElementById('eval-btn').disabled=true;
+  document.getElementById('analyze-btn').disabled=true;
+}
+
+init();
+</script>
+</body>
+</html>

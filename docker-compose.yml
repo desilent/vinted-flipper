@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  vinted-flipper:
+    build: .
+    container_name: vinted-flipper
+    restart: unless-stopped
+    ports:
+      - "8444:8080"
+    environment:
+      # REQUIRED: Get your key from https://console.anthropic.com
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+
+      # Vinted country domain: de, fr, nl, co.uk, it, es, etc.
+      - VINTED_DOMAIN=${VINTED_DOMAIN:-de}
+    volumes:
+      # Optional: persist data if you add a database later
+      - ./data:/app/data
