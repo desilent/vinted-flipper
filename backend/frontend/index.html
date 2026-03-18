@@ -267,9 +267,16 @@ async function handleAnalyze() {
       }
     }
     if(data.item.condition) {
-      const condMap = {"Neu mit Etikett":"new_tags","Neu ohne Etikett":"new_no_tags","Sehr gut":"very_good","Gut":"good","Zufriedenstellend":"satisfactory",
+      const condMap = {
+        "Neu mit Etikett":"new_tags","Neu ohne Etikett":"new_no_tags","Sehr gut":"very_good","Gut":"good","Zufriedenstellend":"satisfactory",
         "Neuf avec étiquette":"new_tags","Neuf sans étiquette":"new_no_tags","Très bon état":"very_good","Bon état":"good","Satisfaisant":"satisfactory",
-        "New with tags":"new_tags","New without tags":"new_no_tags","Very good":"very_good","Good":"good","Satisfactory":"satisfactory"};
+        "New with tags":"new_tags","New without tags":"new_no_tags","Very good":"very_good","Good":"good","Satisfactory":"satisfactory",
+        "Nieuw met label":"new_tags","Nieuw zonder label":"new_no_tags","Zeer goed":"very_good","Goed":"good","Voldoende":"satisfactory",
+        "Novo s etiketom":"new_tags","Novo bez etikete":"new_no_tags","Vrlo dobro":"very_good","Dobro":"good","Zadovoljavajuće":"satisfactory",
+        "Nuovo con cartellino":"new_tags","Nuovo senza cartellino":"new_no_tags","Ottime condizioni":"very_good","Buone condizioni":"good","Soddisfacente":"satisfactory",
+        "Nuevo con etiqueta":"new_tags","Nuevo sin etiqueta":"new_no_tags","Muy bueno":"very_good","Bueno":"good","Satisfactorio":"satisfactory",
+        "Nowy z metką":"new_tags","Nowy bez metki":"new_no_tags","Bardzo dobry":"very_good","Dobry":"good","Zadowalający":"satisfactory"
+      };
       const mapped = condMap[data.item.condition];
       if(mapped) { selectedCondition=mapped; document.querySelectorAll('.chip').forEach(c=>{c.classList.toggle('active',c.textContent===CONDITIONS.find(x=>x.value===mapped)?.label)}); }
     }

@@ -222,40 +222,60 @@ def parse_item(item: dict) -> dict:
 
 
 def detect_category(title: str, description: str = "", catalog_id=None) -> tuple:
-    """Detect category and subcategory from title/description text."""
+    """Detect category and subcategory from title/description text. Supports EN/DE/FR/NL/HR/IT/ES/PL."""
     text = f"{title} {description}".lower()
 
-    # Shoe keywords
-    shoe_words = {"sneaker", "trainer", "shoe", "boot", "sandal", "heel", "loafer",
-                  "jordan", "air max", "yeezy", "dunk", "schuh", "stiefel", "turnschuh",
-                  "chaussure", "basket", "botte", "sandale"}
+    # Shoe keywords (EN/DE/FR/NL/HR/IT/ES/PL)
+    shoe_words = {"sneaker", "trainer", "shoe", "shoes", "boot", "boots", "sandal", "heel", "loafer",
+                  "jordan", "air max", "yeezy", "dunk",
+                  "schuh", "schuhe", "stiefel", "turnschuh",
+                  "chaussure", "basket", "botte", "sandale",
+                  "schoen", "schoenen", "laars", "laarzen",
+                  "cipele", "tenisice", "čizme", "sandale",
+                  "scarpe", "scarpa", "stivali", "stivale",
+                  "zapato", "zapatos", "bota", "botas",
+                  "buty", "but", "trampki", "kozaki"}
+
     # Bag keywords
-    bag_words = {"bag", "handbag", "backpack", "rucksack", "tote", "clutch", "crossbody",
-                 "purse", "tasche", "handtasche", "sac", "pochette"}
+    bag_words = {"bag", "handbag", "backpack", "rucksack", "tote", "clutch", "crossbody", "purse",
+                 "tasche", "handtasche", "rucksack",
+                 "sac", "pochette",
+                 "tas", "handtas", "rugzak",
+                 "torba", "torbica", "ruksak",
+                 "borsa", "borsetta", "zaino",
+                 "bolso", "bolsa", "mochila",
+                 "torebka", "plecak"}
+
     # Accessory keywords
-    acc_words = {"watch", "sunglasses", "belt", "scarf", "hat", "cap", "jewel",
-                 "necklace", "bracelet", "ring", "uhr", "sonnenbrille", "gürtel",
-                 "schal", "mütze", "montre", "lunettes", "ceinture", "chapeau"}
+    acc_words = {"watch", "sunglasses", "belt", "scarf", "hat", "cap", "jewel", "jewelry", "jewellery",
+                 "necklace", "bracelet", "ring",
+                 "uhr", "sonnenbrille", "gürtel", "schal", "mütze", "schmuck", "kette",
+                 "montre", "lunettes", "ceinture", "chapeau", "foulard", "bijoux",
+                 "horloge", "zonnebril", "riem", "sjaal", "pet", "muts",
+                 "sat", "naočale", "remen", "šal", "kapa",
+                 "orologio", "occhiali", "cintura", "sciarpa", "cappello",
+                 "reloj", "gafas", "cinturón", "bufanda", "sombrero", "gorra",
+                 "zegarek", "okulary", "pasek", "szalik", "czapka"}
 
     # Check shoes
     if any(w in text for w in shoe_words):
         cat = "Shoes"
-        if any(w in text for w in ("sneaker", "trainer", "jordan", "air max", "yeezy", "dunk", "turnschuh", "basket")):
+        if any(w in text for w in ("sneaker", "trainer", "jordan", "air max", "yeezy", "dunk", "turnschuh", "basket", "tenisice", "trampki")):
             return cat, "Sneakers"
-        elif any(w in text for w in ("boot", "stiefel", "botte")):
+        elif any(w in text for w in ("boot", "boots", "stiefel", "botte", "laars", "laarzen", "čizme", "stivali", "bota", "botas", "kozaki")):
             return cat, "Boots"
         elif any(w in text for w in ("sandal", "sandale")):
             return cat, "Sandals"
-        elif any(w in text for w in ("heel", "pump")):
+        elif any(w in text for w in ("heel", "pump", "štikl")):
             return cat, "Heels"
-        elif any(w in text for w in ("loafer", "mokassin")):
+        elif any(w in text for w in ("loafer", "mokassin", "mocassin")):
             return cat, "Loafers"
         return cat, "Other"
 
     # Check bags
     if any(w in text for w in bag_words):
         cat = "Bags"
-        if any(w in text for w in ("backpack", "rucksack")):
+        if any(w in text for w in ("backpack", "rucksack", "rugzak", "ruksak", "zaino", "mochila", "plecak")):
             return cat, "Backpacks"
         elif any(w in text for w in ("tote",)):
             return cat, "Tote"
@@ -268,41 +288,45 @@ def detect_category(title: str, description: str = "", catalog_id=None) -> tuple
     # Check accessories
     if any(w in text for w in acc_words):
         cat = "Accessories"
-        if any(w in text for w in ("watch", "uhr", "montre")):
+        if any(w in text for w in ("watch", "uhr", "montre", "horloge", "sat", "orologio", "reloj", "zegarek")):
             return cat, "Watches"
-        elif any(w in text for w in ("sunglasses", "sonnenbrille", "lunettes")):
+        elif any(w in text for w in ("sunglasses", "sonnenbrille", "lunettes", "zonnebril", "naočale", "occhiali", "gafas", "okulary")):
             return cat, "Sunglasses"
-        elif any(w in text for w in ("belt", "gürtel", "ceinture")):
+        elif any(w in text for w in ("belt", "gürtel", "ceinture", "riem", "remen", "cintura", "cinturón", "pasek")):
             return cat, "Belts"
-        elif any(w in text for w in ("scarf", "schal", "foulard")):
+        elif any(w in text for w in ("scarf", "schal", "foulard", "sjaal", "šal", "sciarpa", "bufanda", "szalik")):
             return cat, "Scarves"
-        elif any(w in text for w in ("hat", "cap", "mütze", "chapeau", "beanie")):
+        elif any(w in text for w in ("hat", "cap", "mütze", "chapeau", "beanie", "pet", "muts", "kapa", "cappello", "sombrero", "gorra", "czapka")):
             return cat, "Hats"
-        elif any(w in text for w in ("jewel", "necklace", "bracelet", "ring", "schmuck", "kette")):
+        elif any(w in text for w in ("jewel", "necklace", "bracelet", "ring", "schmuck", "kette", "bijoux", "nakit", "ogrlica")):
             return cat, "Jewellery"
         return cat, "Other"
 
-    # Default: Clothing
+    # Default: Clothing (EN/DE/FR/NL/HR/IT/ES/PL)
     cat = "Clothing"
-    if any(w in text for w in ("jacket", "jacke", "veste", "track", "windbreaker", "bomber")):
+    if any(w in text for w in ("jacket", "jacke", "veste", "track", "windbreaker", "bomber",
+                                "jas", "jack", "jakna", "giacca", "chaqueta", "kurtka")):
         return cat, "Jackets"
-    elif any(w in text for w in ("coat", "mantel", "parka", "manteau", "trench")):
+    elif any(w in text for w in ("coat", "mantel", "parka", "manteau", "trench",
+                                  "jas", "winterjas", "kaput", "cappotto", "abrigo", "płaszcz")):
         return cat, "Coats"
-    elif any(w in text for w in ("hoodie", "hoody", "kapuzenpullover")):
+    elif any(w in text for w in ("hoodie", "hoody", "kapuzenpullover", "capuchon",
+                                  "hudica", "felpa", "sudadera", "bluza")):
         return cat, "Hoodies"
-    elif any(w in text for w in ("sweater", "pullover", "knit", "sweatshirt", "pulli", "pull")):
+    elif any(w in text for w in ("sweater", "pullover", "knit", "sweatshirt", "pulli", "pull",
+                                  "trui", "pulover", "maglione", "jersey", "suéter", "sweter")):
         return cat, "Sweaters"
-    elif any(w in text for w in ("jean", "denim", "jeans")):
+    elif any(w in text for w in ("jean", "denim", "jeans", "spijkerbroek", "traperice", "vaquero")):
         return cat, "Jeans"
-    elif any(w in text for w in ("dress", "kleid", "robe")):
+    elif any(w in text for w in ("dress", "kleid", "robe", "jurk", "haljina", "vestito", "abito", "vestido", "sukienka")):
         return cat, "Dresses"
-    elif any(w in text for w in ("t-shirt", "tshirt", "tee ", "t shirt")):
+    elif any(w in text for w in ("t-shirt", "tshirt", "tee ", "t shirt", "majica", "maglietta", "camiseta", "koszulka")):
         return cat, "T-Shirts"
-    elif any(w in text for w in ("blazer", "sakko")):
+    elif any(w in text for w in ("blazer", "sakko", "colbert", "sako", "americana")):
         return cat, "Blazers"
-    elif any(w in text for w in ("short", "kurze hose")):
+    elif any(w in text for w in ("short", "shorts", "kurze hose", "korte broek", "kratke hlače", "pantaloncini", "pantalón corto", "szorty")):
         return cat, "Shorts"
-    elif any(w in text for w in ("skirt", "rock", "jupe")):
+    elif any(w in text for w in ("skirt", "rock", "jupe", "rok", "suknja", "gonna", "falda", "spódnica")):
         return cat, "Skirts"
     return cat, "Other"
 
@@ -345,12 +369,23 @@ def get_brand_tier(brand: str) -> tuple:
     return "standard", 0.28
 
 CONDITION_MULTIPLIERS = {
-    "new_tags": 1.0, "new_no_tags": 0.9, "Neuf avec étiquette": 1.0,
-    "Neuf sans étiquette": 0.9, "Très bon état": 0.75, "Bon état": 0.6,
-    "Satisfaisant": 0.45, "Neu mit Etikett": 1.0, "Neu ohne Etikett": 0.9,
-    "Sehr gut": 0.75, "Gut": 0.6, "Zufriedenstellend": 0.45,
-    "New with tags": 1.0, "New without tags": 0.9, "Very good": 0.75,
-    "Good": 0.6, "Satisfactory": 0.45,
+    # English
+    "new_tags": 1.0, "new_no_tags": 0.9,
+    "New with tags": 1.0, "New without tags": 0.9, "Very good": 0.75, "Good": 0.6, "Satisfactory": 0.45,
+    # German
+    "Neu mit Etikett": 1.0, "Neu ohne Etikett": 0.9, "Sehr gut": 0.75, "Gut": 0.6, "Zufriedenstellend": 0.45,
+    # French
+    "Neuf avec étiquette": 1.0, "Neuf sans étiquette": 0.9, "Très bon état": 0.75, "Bon état": 0.6, "Satisfaisant": 0.45,
+    # Dutch
+    "Nieuw met label": 1.0, "Nieuw zonder label": 0.9, "Zeer goed": 0.75, "Goed": 0.6, "Voldoende": 0.45,
+    # Croatian
+    "Novo s etiketom": 1.0, "Novo bez etikete": 0.9, "Vrlo dobro": 0.75, "Dobro": 0.6, "Zadovoljavajuće": 0.45,
+    # Italian
+    "Nuovo con cartellino": 1.0, "Nuovo senza cartellino": 0.9, "Ottime condizioni": 0.75, "Buone condizioni": 0.6, "Soddisfacente": 0.45,
+    # Spanish
+    "Nuevo con etiqueta": 1.0, "Nuevo sin etiqueta": 0.9, "Muy bueno": 0.75, "Bueno": 0.6, "Satisfactorio": 0.45,
+    # Polish
+    "Nowy z metką": 1.0, "Nowy bez metki": 0.9, "Bardzo dobry": 0.75, "Dobry": 0.6, "Zadowalający": 0.45,
 }
 
 def get_condition_multiplier(condition: str) -> float:
