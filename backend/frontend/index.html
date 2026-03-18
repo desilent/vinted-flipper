@@ -4,190 +4,289 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vinted Flipper</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#0d0d0f; --card:#161619; --input:#1c1c20; --border:#2a2a30; --text:#e8e8ec; --muted:#6b6b78; --accent:#6366f1; --bar:#1e1e24; }
+  :root {
+    --bg: #FBF8F4;
+    --card: #FFFFFF;
+    --input-bg: #F5F1EC;
+    --border: #E8E0D8;
+    --text: #2D2A26;
+    --muted: #9B9490;
+    --accent: #C97B84;
+    --accent-light: #F2DFE1;
+    --accent-dark: #A85F68;
+    --sage: #8BA888;
+    --sage-light: #E2EDE0;
+    --sage-dark: #6B8E69;
+    --warm: #D4A76A;
+    --warm-light: #F5EBD9;
+    --bar-bg: #EDE8E2;
+    --shadow: 0 2px 16px rgba(45,42,38,0.06);
+    --shadow-lg: 0 8px 32px rgba(45,42,38,0.08);
+  }
+
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
-  .mono { font-family:'DM Mono',monospace; }
+  body { font-family:'Outfit',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  .mono { font-family:'JetBrains Mono',monospace; }
+
   input,select,button { font-family:inherit; }
-  input,select { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border); background:var(--input); color:var(--text); font-size:14px; outline:none; transition:border-color .2s; }
-  input:focus,select:focus { border-color:var(--accent); }
-  input::placeholder { color:#4a4a56; }
-  select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%23888' fill='none' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px; }
-  .label { font-size:11px; font-weight:600; color:var(--muted); letter-spacing:.5px; text-transform:uppercase; margin-bottom:5px; display:block; }
-  .btn { padding:13px 20px; border-radius:10px; border:none; font-size:15px; font-weight:700; cursor:pointer; transition:all .2s; }
-  .btn-primary { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; box-shadow:0 4px 20px #6366f133; }
-  .btn-primary:disabled { background:#2a2a30; color:#555; box-shadow:none; cursor:default; }
-  .btn-secondary { background:transparent; border:1px solid var(--border); color:var(--muted); padding:13px 18px; font-size:13px; }
-  .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; }
-  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  input,select {
+    width:100%; padding:11px 14px; border-radius:12px; border:1.5px solid var(--border);
+    background:var(--input-bg); color:var(--text); font-size:14px; outline:none;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  input:focus,select:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-light); }
+  input::placeholder { color:#B8B0A8; }
+  select {
+    appearance:none; cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%239B9490' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 14px center; padding-right:36px;
+  }
+
+  .label { font-size:11px; font-weight:600; color:var(--muted); letter-spacing:.8px; text-transform:uppercase; margin-bottom:6px; display:block; }
+  .card { background:var(--card); border:1.5px solid var(--border); border-radius:16px; padding:20px; box-shadow:var(--shadow); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .fade-in { animation:fadeSlide .5s ease; }
-  @keyframes fadeSlide { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeSlide { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
   @keyframes spin { to{transform:rotate(360deg)} }
-  .spinner { width:16px; height:16px; border:2px solid #6366f133; border-top-color:#6366f1; border-radius:50%; animation:spin .6s linear infinite; display:inline-block; }
+  .spinner { width:16px; height:16px; border:2px solid var(--accent-light); border-top-color:var(--accent); border-radius:50%; animation:spin .6s linear infinite; display:inline-block; }
 
-  /* Layout */
-  .header { padding:24px 20px 16px; border-bottom:1px solid var(--border); background:linear-gradient(180deg,#121215,var(--bg)); }
-  .tabs { display:flex; gap:4px; background:var(--input); border-radius:10px; padding:3px; }
-  .tab { flex:1; padding:9px 0; border-radius:8px; border:none; background:transparent; color:var(--muted); font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; }
-  .tab.active { background:var(--accent); color:#fff; }
-  .content { padding:20px; max-width:480px; margin:0 auto; }
+  /* ─── Shell ─── */
+  .shell { max-width:1100px; margin:0 auto; padding:24px; }
 
-  /* AI section */
-  .ai-box { padding:16px; margin-bottom:20px; border-radius:12px; background:linear-gradient(135deg,#6366f108,#8b5cf608); border:1px solid #6366f122; }
-  .ai-label { display:flex; align-items:center; gap:6px; margin-bottom:10px; font-size:12px; font-weight:700; color:#a5b4fc; letter-spacing:.3px; }
-  .ai-row { display:flex; gap:8px; }
-  .ai-row input { flex:1; font-size:12px; background:#0d0d0f; }
-  .ai-btn { padding:10px 16px; border-radius:8px; border:none; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; min-width:80px; transition:all .2s; }
-  .ai-btn:disabled { background:#2a2a30; color:#555; }
-  .status-msg { margin-top:10px; padding:10px 12px; border-radius:8px; font-size:12px; animation:fadeSlide .3s ease; }
-  .status-loading { background:#6366f10a; border:1px solid #6366f115; color:#a5b4fc; }
-  .status-error { background:#e74c3c0a; border:1px solid #e74c3c22; color:#f87171; }
-  .status-success { background:#10b98108; border:1px solid #10b98122; color:#34d399; }
+  .header {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:20px 0 24px; border-bottom:1.5px solid var(--border); margin-bottom:28px;
+  }
+  .logo { display:flex; align-items:center; gap:12px; }
+  .logo-icon {
+    width:42px; height:42px; border-radius:14px;
+    background:linear-gradient(135deg, var(--accent), #E8A0A8);
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; font-weight:800; color:#fff; box-shadow:0 4px 12px rgba(201,123,132,0.3);
+  }
+  .logo-text { font-size:22px; font-weight:700; letter-spacing:-.5px; color:var(--text); }
+  .logo-sub { font-size:12px; color:var(--muted); font-weight:400; }
 
-  /* Condition chips */
-  .chips { display:flex; gap:6px; flex-wrap:wrap; }
-  .chip { padding:7px 12px; border-radius:8px; font-size:12px; font-weight:600; border:1px solid var(--border); background:var(--card); color:var(--muted); cursor:pointer; transition:all .2s; }
-  .chip.active { border-color:var(--accent); background:#6366f118; color:var(--accent); }
+  .tabs { display:flex; gap:4px; background:var(--input-bg); border-radius:14px; padding:4px; }
+  .tab {
+    padding:10px 24px; border-radius:11px; border:none; background:transparent;
+    color:var(--muted); font-size:14px; font-weight:600; cursor:pointer; transition:all .25s;
+  }
+  .tab.active { background:var(--card); color:var(--text); box-shadow:var(--shadow); }
+  .tab:hover:not(.active) { color:var(--text); }
 
-  /* Price bar */
-  .bar-row { margin-bottom:10px; }
-  .bar-label { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:4px; }
-  .bar-track { height:6px; background:var(--bar); border-radius:3px; overflow:hidden; }
-  .bar-fill { height:100%; border-radius:3px; transition:width .6s ease; }
+  /* ─── Two column layout ─── */
+  .main-grid { display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start; }
+  @media (max-width: 768px) {
+    .main-grid { grid-template-columns:1fr; }
+    .shell { padding:16px; }
+    .header { flex-direction:column; gap:16px; align-items:flex-start; }
+  }
 
-  /* Comparables */
-  .comp-item { display:flex; justify-content:space-between; align-items:center; padding:8px 10px; margin-bottom:4px; border-radius:6px; font-size:12px; }
-  .comp-item:nth-child(odd) { background:var(--card); }
-  .comp-title { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .comp-price { font-weight:700; color:#10b981; margin-left:8px; }
+  .left-col, .right-col { display:flex; flex-direction:column; gap:20px; }
 
-  /* Verdict */
-  .verdict-box { text-align:center; padding:20px 16px; margin-bottom:20px; border-radius:12px; }
-  .verdict-label { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
-  .verdict-text { font-size:28px; font-weight:800; }
-  .verdict-sub { font-size:12px; color:var(--muted); margin-top:4px; }
+  /* ─── URL box ─── */
+  .url-box {
+    padding:20px; border-radius:18px;
+    background:linear-gradient(135deg, var(--accent-light) 0%, #FFF5F6 100%);
+    border:1.5px solid #E8CDD0;
+  }
+  .url-label { display:flex; align-items:center; gap:8px; margin-bottom:12px; font-size:13px; font-weight:700; color:var(--accent-dark); }
+  .url-row { display:flex; gap:10px; }
+  .url-row input { flex:1; font-size:13px; background:#fff; border-color:#E0C8CB; }
+  .url-row input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-light); }
+  .url-btn {
+    padding:11px 22px; border-radius:12px; border:none;
+    background:linear-gradient(135deg, var(--accent), #D4929A);
+    color:#fff; font-size:13px; font-weight:700; cursor:pointer;
+    white-space:nowrap; min-width:90px; transition:all .25s;
+    box-shadow:0 4px 12px rgba(201,123,132,0.25);
+  }
+  .url-btn:hover { transform:translateY(-1px); box-shadow:0 6px 16px rgba(201,123,132,0.35); }
+  .url-btn:disabled { background:#D4C8C4; color:#A09890; box-shadow:none; transform:none; }
+  .url-hint { font-size:11px; color:var(--muted); margin-top:10px; }
 
-  /* Stat grid */
-  .stat-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:20px; }
-  .stat { text-align:center; padding:14px 8px; }
-  .stat-label { font-size:11px; color:var(--muted); margin-bottom:4px; }
-  .stat-value { font-size:18px; font-weight:700; }
+  .status-msg { margin-top:12px; padding:10px 14px; border-radius:10px; font-size:12px; animation:fadeSlide .3s ease; }
+  .status-loading { background:#F2DFE1; border:1.5px solid #E0C0C4; color:var(--accent-dark); }
+  .status-error { background:#FDE8E8; border:1.5px solid #F0C0C0; color:#B44040; }
+  .status-success { background:var(--sage-light); border:1.5px solid #C0D8BE; color:var(--sage-dark); }
 
-  /* Watchlist */
-  .wl-item { margin-bottom:10px; }
-  .wl-top { display:flex; justify-content:space-between; align-items:flex-start; }
-  .wl-brand { font-weight:700; font-size:14px; margin-bottom:2px; }
-  .wl-title { font-size:11px; color:var(--muted); margin-bottom:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .wl-meta { font-size:12px; color:var(--muted); }
-  .wl-badge { font-size:12px; font-weight:700; padding:2px 8px; border-radius:6px; flex-shrink:0; margin-left:8px; }
-  .wl-prices { display:flex; gap:16px; margin-top:10px; font-size:12px; color:var(--muted); }
-  .wl-link { margin-top:6px; font-size:11px; }
-  .wl-link a { color:#6366f1; text-decoration:none; }
-  .wl-footer { display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
-  .wl-date { font-size:10px; color:var(--muted); }
-  .wl-remove { background:none; border:none; color:#e74c3c; cursor:pointer; font-size:11px; padding:2px 6px; }
-  .divider { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  /* ─── Form ─── */
+  .chips { display:flex; gap:8px; flex-wrap:wrap; }
+  .chip {
+    padding:8px 16px; border-radius:20px; font-size:12px; font-weight:600;
+    border:1.5px solid var(--border); background:var(--card); color:var(--muted);
+    cursor:pointer; transition:all .2s;
+  }
+  .chip.active { border-color:var(--accent); background:var(--accent-light); color:var(--accent-dark); }
+  .chip:hover:not(.active) { border-color:#D0C8C0; }
+
+  .btn-primary {
+    padding:13px 24px; border-radius:14px; border:none; font-size:15px; font-weight:700;
+    background:linear-gradient(135deg, var(--accent), #D4929A); color:#fff;
+    cursor:pointer; transition:all .25s; box-shadow:0 4px 16px rgba(201,123,132,0.25);
+  }
+  .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(201,123,132,0.35); }
+  .btn-primary:disabled { background:#D4C8C4; color:#A09890; box-shadow:none; transform:none; cursor:default; }
+  .btn-secondary {
+    padding:13px 20px; border-radius:14px; border:1.5px solid var(--border);
+    background:var(--card); color:var(--muted); font-size:13px; font-weight:600; cursor:pointer;
+    transition:all .2s;
+  }
+  .btn-secondary:hover { border-color:var(--accent); color:var(--accent); }
+
+  .divider { display:flex; align-items:center; gap:14px; margin:4px 0; }
   .divider-line { flex:1; height:1px; background:var(--border); }
-  .divider-text { font-size:10px; color:var(--muted); letter-spacing:1px; }
-  .green-border { border-color:#10b98144 !important; }
-  .save-btn { width:100%; padding:12px; border:1px dashed var(--border); border-radius:10px; background:transparent; color:var(--muted); cursor:pointer; font-size:13px; transition:all .2s; }
-  .save-btn:hover { border-color:#6366f1; color:#6366f1; }
-  .empty { text-align:center; padding:60px 20px; color:var(--muted); }
-  .empty-icon { font-size:36px; margin-bottom:12px; }
-  .insight { padding:12px 14px; margin-bottom:12px; border-radius:10px; background:#6366f10a; border:1px solid #6366f118; font-size:12px; color:#c4b5fd; line-height:1.5; }
+  .divider-text { font-size:10px; color:var(--muted); letter-spacing:1.2px; font-weight:500; }
+
+  .green-border { border-color:var(--sage) !important; background:var(--sage-light) !important; }
+
+  /* ─── Results ─── */
+  .verdict-box { text-align:center; padding:24px 20px; border-radius:18px; }
+  .verdict-label { font-size:11px; letter-spacing:2.5px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; font-weight:500; }
+  .verdict-text { font-size:32px; font-weight:800; letter-spacing:-.5px; }
+  .verdict-sub { font-size:13px; color:var(--muted); margin-top:6px; }
+
+  .stat-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:20px; }
+  .stat { text-align:center; padding:16px 10px; background:var(--card); border-radius:14px; border:1.5px solid var(--border); box-shadow:var(--shadow); }
+  .stat-label { font-size:11px; color:var(--muted); margin-bottom:5px; font-weight:500; }
+  .stat-value { font-size:20px; font-weight:700; }
+
+  .bar-row { margin-bottom:12px; }
+  .bar-label { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:5px; font-weight:500; }
+  .bar-track { height:8px; background:var(--bar-bg); border-radius:4px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:4px; transition:width .6s ease; }
+
+  .comp-item { display:flex; justify-content:space-between; align-items:center; padding:10px 12px; margin-bottom:4px; border-radius:10px; font-size:13px; }
+  .comp-item:nth-child(odd) { background:var(--input-bg); }
+  .comp-title { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); }
+  .comp-price { font-weight:700; color:var(--sage-dark); margin-left:10px; }
+
+  .insight { padding:14px 16px; margin-bottom:16px; border-radius:14px; background:var(--warm-light); border:1.5px solid #E0D0B8; font-size:13px; color:#8B7040; line-height:1.6; }
+
+  .save-btn {
+    width:100%; padding:13px; border:1.5px dashed var(--border); border-radius:14px;
+    background:transparent; color:var(--muted); cursor:pointer; font-size:14px; font-weight:600;
+    transition:all .2s;
+  }
+  .save-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
+
+  /* ─── Watchlist ─── */
+  .wl-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width: 768px) { .wl-grid { grid-template-columns:1fr; } }
+  .wl-item { margin-bottom:0; }
+  .wl-top { display:flex; justify-content:space-between; align-items:flex-start; }
+  .wl-brand { font-weight:700; font-size:15px; margin-bottom:3px; }
+  .wl-title { font-size:12px; color:var(--muted); margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .wl-meta { font-size:12px; color:var(--muted); }
+  .wl-badge { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; flex-shrink:0; margin-left:10px; }
+  .wl-prices { display:flex; gap:18px; margin-top:12px; font-size:12px; color:var(--muted); }
+  .wl-prices b { color:var(--text); }
+  .wl-link { margin-top:8px; font-size:12px; }
+  .wl-link a { color:var(--accent); text-decoration:none; font-weight:500; }
+  .wl-link a:hover { text-decoration:underline; }
+  .wl-footer { display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); }
+  .wl-date { font-size:11px; color:var(--muted); }
+  .wl-remove { background:none; border:none; color:var(--accent); cursor:pointer; font-size:12px; font-weight:600; padding:2px 8px; border-radius:8px; transition:all .2s; }
+  .wl-remove:hover { background:var(--accent-light); }
+
+  .empty { text-align:center; padding:80px 20px; color:var(--muted); grid-column:1/-1; }
+  .empty-icon { font-size:48px; margin-bottom:16px; }
 </style>
 </head>
 <body>
 
-<div id="app">
+<div class="shell">
   <!-- Header -->
   <div class="header">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff" class="mono">V</div>
+    <div class="logo">
+      <div class="logo-icon mono">V</div>
       <div>
-        <div style="font-size:18px;font-weight:800;letter-spacing:-.5px">Vinted Flipper</div>
-        <div style="font-size:11px;color:var(--muted)" id="subtitle">AI-powered resale evaluator</div>
+        <div class="logo-text">Vinted Flipper</div>
+        <div class="logo-sub" id="subtitle">resale price evaluator</div>
       </div>
     </div>
     <div class="tabs">
       <button class="tab active" onclick="switchTab('evaluate')" id="tab-evaluate">Evaluate</button>
-      <button class="tab" onclick="switchTab('watchlist')" id="tab-watchlist">Watchlist (<span id="wl-count">0</span>)</button>
+      <button class="tab" onclick="switchTab('watchlist')" id="tab-watchlist">Watchlist <span id="wl-count">0</span></button>
     </div>
   </div>
 
-  <div class="content">
-    <!-- Evaluate tab -->
-    <div id="panel-evaluate">
-      <!-- AI Section -->
-      <div class="ai-box">
-        <div class="ai-label">✨ <span>AI PRICE ANALYSIS</span></div>
-        <span class="label" style="margin-bottom:6px">Paste a Vinted listing URL</span>
-        <div class="ai-row">
-          <input type="url" id="url-input" placeholder="https://www.vinted.de/items/...">
-          <button class="ai-btn" id="analyze-btn" onclick="handleAnalyze()" disabled>Analyze</button>
+  <!-- Evaluate Tab -->
+  <div id="panel-evaluate">
+    <div class="main-grid">
+      <!-- Left: Input -->
+      <div class="left-col">
+        <!-- URL box -->
+        <div class="url-box">
+          <div class="url-label">✦ <span>Paste a listing URL</span></div>
+          <div class="url-row">
+            <input type="url" id="url-input" placeholder="https://www.vinted.de/items/...">
+            <button class="url-btn" id="analyze-btn" onclick="handleAnalyze()" disabled>Analyze</button>
+          </div>
+          <div id="status-area"></div>
+          <div class="url-hint">Fetches item details, comparables & retail price via AI</div>
         </div>
-        <div id="status-area"></div>
-        <div style="font-size:10px;color:var(--muted);margin-top:8px">
-          Fetches item details, finds comparable listings & retail price
+
+        <!-- Divider -->
+        <div class="divider">
+          <div class="divider-line"></div>
+          <span class="divider-text" id="divider-label">or fill manually</span>
+          <div class="divider-line"></div>
+        </div>
+
+        <!-- Form -->
+        <div class="card">
+          <div style="margin-bottom:16px">
+            <span class="label">Brand</span>
+            <input id="brand" placeholder="e.g. Nike, Gucci, Zara...">
+          </div>
+          <div class="grid2" style="margin-bottom:16px">
+            <div><span class="label">Category</span><select id="category" onchange="updateSubcats()"></select></div>
+            <div><span class="label">Type</span><select id="subcategory"></select></div>
+          </div>
+          <div style="margin-bottom:16px">
+            <span class="label">Condition</span>
+            <div class="chips" id="condition-chips"></div>
+          </div>
+          <div class="grid2" style="margin-bottom:20px">
+            <div><span class="label">Asking price (€)</span><input type="number" id="asking-price" placeholder="0.00"></div>
+            <div><span class="label">Retail price (€)</span><input type="number" id="retail-price" placeholder="AI will find"></div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn-primary" style="flex:1" id="eval-btn" onclick="handleEvaluate()" disabled>Evaluate</button>
+            <button class="btn-secondary" id="clear-btn" onclick="handleClear()" style="display:none">Clear</button>
+          </div>
         </div>
       </div>
 
-      <!-- Divider -->
-      <div class="divider">
-        <div class="divider-line"></div>
-        <span class="divider-text" id="divider-label">OR FILL MANUALLY</span>
-        <div class="divider-line"></div>
+      <!-- Right: Results -->
+      <div class="right-col" id="results-area">
+        <div class="card" style="text-align:center;padding:60px 30px;color:var(--muted)">
+          <div style="font-size:40px;margin-bottom:16px">👗</div>
+          <div style="font-size:16px;font-weight:600;margin-bottom:6px">Paste a URL or fill in the details</div>
+          <div style="font-size:13px">Results will appear here</div>
+        </div>
       </div>
-
-      <!-- Form -->
-      <div style="margin-bottom:16px">
-        <span class="label">Brand *</span>
-        <input id="brand" placeholder="e.g. Nike, Gucci, Zara...">
-      </div>
-      <div class="grid2" style="margin-bottom:16px">
-        <div><span class="label">Category</span><select id="category" onchange="updateSubcats()"></select></div>
-        <div><span class="label">Type</span><select id="subcategory"></select></div>
-      </div>
-      <div style="margin-bottom:16px">
-        <span class="label">Condition</span>
-        <div class="chips" id="condition-chips"></div>
-      </div>
-      <div class="grid2" style="margin-bottom:20px">
-        <div><span class="label">Asking Price (€)</span><input type="number" id="asking-price" placeholder="0.00"></div>
-        <div><span class="label">Retail Price (€)</span><input type="number" id="retail-price" placeholder="AI will find"></div>
-      </div>
-
-      <div style="display:flex;gap:10px;margin-bottom:24px">
-        <button class="btn btn-primary" style="flex:1" id="eval-btn" onclick="handleEvaluate()" disabled>Evaluate</button>
-        <button class="btn btn-secondary" id="clear-btn" onclick="handleClear()" style="display:none">Clear</button>
-      </div>
-
-      <div id="results-area"></div>
     </div>
+  </div>
 
-    <!-- Watchlist tab -->
-    <div id="panel-watchlist" style="display:none">
-      <div id="watchlist-area"></div>
-    </div>
+  <!-- Watchlist Tab -->
+  <div id="panel-watchlist" style="display:none">
+    <div class="wl-grid" id="watchlist-area"></div>
   </div>
 </div>
 
 <script>
-// ─── State ───
-let state = {
-  watchlist: JSON.parse(localStorage.getItem('vinted-watchlist') || '[]'),
-  lastResult: null,
-  lastItem: null,
-  autoFilled: false,
-};
+let state = { watchlist: JSON.parse(localStorage.getItem('vinted-watchlist') || '[]'), lastResult: null, lastItem: null, autoFilled: false };
 
 const CATEGORIES = {
-  Clothing: ["T-Shirts","Jeans","Dresses","Jackets","Sweaters","Hoodies","Skirts","Shorts","Coats","Blazers","Other"],
-  Shoes: ["Sneakers","Boots","Sandals","Heels","Loafers","Other"],
-  Bags: ["Handbags","Backpacks","Crossbody","Tote","Clutch","Other"],
-  Accessories: ["Watches","Sunglasses","Belts","Scarves","Jewellery","Hats","Other"],
+  Clothing:["T-Shirts","Jeans","Dresses","Jackets","Sweaters","Hoodies","Skirts","Shorts","Coats","Blazers","Other"],
+  Shoes:["Sneakers","Boots","Sandals","Heels","Loafers","Other"],
+  Bags:["Handbags","Backpacks","Crossbody","Tote","Clutch","Other"],
+  Accessories:["Watches","Sunglasses","Belts","Scarves","Jewellery","Hats","Other"],
 };
 const CONDITIONS = [
   {label:"New with tags",value:"new_tags"},{label:"New without tags",value:"new_no_tags"},
@@ -195,338 +294,206 @@ const CONDITIONS = [
 ];
 let selectedCondition = "very_good";
 
-// ─── Init ───
 function init() {
   const catSel = document.getElementById('category');
-  Object.keys(CATEGORIES).forEach(c => { const o = document.createElement('option'); o.value=c; o.textContent=c; catSel.appendChild(o); });
+  Object.keys(CATEGORIES).forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; catSel.appendChild(o); });
   updateSubcats();
-
   const chips = document.getElementById('condition-chips');
   CONDITIONS.forEach(c => {
-    const b = document.createElement('button');
-    b.className = 'chip' + (c.value===selectedCondition?' active':'');
-    b.textContent = c.label;
-    b.onclick = () => { selectedCondition=c.value; document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); b.classList.add('active'); };
+    const b=document.createElement('button'); b.className='chip'+(c.value===selectedCondition?' active':''); b.textContent=c.label;
+    b.onclick=()=>{ selectedCondition=c.value; document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); b.classList.add('active'); };
     chips.appendChild(b);
   });
-
-  document.getElementById('url-input').addEventListener('input', e => {
-    document.getElementById('analyze-btn').disabled = !e.target.value.trim();
-  });
-  document.getElementById('brand').addEventListener('input', e => {
-    document.getElementById('eval-btn').disabled = !e.target.value.trim();
-  });
-
+  document.getElementById('url-input').addEventListener('input', e => { document.getElementById('analyze-btn').disabled=!e.target.value.trim(); });
+  document.getElementById('brand').addEventListener('input', e => { document.getElementById('eval-btn').disabled=!e.target.value.trim(); });
   updateWatchlistCount();
 }
 
 function updateSubcats() {
-  const cat = document.getElementById('category').value;
-  const sub = document.getElementById('subcategory');
-  sub.innerHTML = '';
-  (CATEGORIES[cat]||[]).forEach(s => { const o=document.createElement('option'); o.value=s; o.textContent=s; sub.appendChild(o); });
+  const cat=document.getElementById('category').value, sub=document.getElementById('subcategory');
+  sub.innerHTML='';
+  (CATEGORIES[cat]||[]).forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; sub.appendChild(o); });
 }
 
-// ─── Tab switching ───
 function switchTab(tab) {
-  document.getElementById('panel-evaluate').style.display = tab==='evaluate'?'block':'none';
-  document.getElementById('panel-watchlist').style.display = tab==='watchlist'?'block':'none';
-  document.getElementById('tab-evaluate').className = 'tab'+(tab==='evaluate'?' active':'');
-  document.getElementById('tab-watchlist').className = 'tab'+(tab==='watchlist'?' active':'');
+  document.getElementById('panel-evaluate').style.display=tab==='evaluate'?'block':'none';
+  document.getElementById('panel-watchlist').style.display=tab==='watchlist'?'block':'none';
+  document.getElementById('tab-evaluate').className='tab'+(tab==='evaluate'?' active':'');
+  document.getElementById('tab-watchlist').className='tab'+(tab==='watchlist'?' active':'');
   if(tab==='watchlist') renderWatchlist();
 }
 
-// ─── API calls ───
 async function handleAnalyze() {
-  const url = document.getElementById('url-input').value.trim();
+  const url=document.getElementById('url-input').value.trim();
   if(!url) return;
-
-  const btn = document.getElementById('analyze-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>';
-  showStatus('loading', '🔍 Analyzing listing — fetching item, comparables & retail price...');
-  document.getElementById('results-area').innerHTML = '';
-  state.lastResult = null;
-
+  const btn=document.getElementById('analyze-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
+  showStatus('loading','Analyzing listing — fetching details, comparables & retail price…');
+  document.getElementById('results-area').innerHTML='<div class="card" style="text-align:center;padding:50px;color:var(--muted)"><span class="spinner" style="width:24px;height:24px;border-width:3px"></span><div style="margin-top:16px;font-size:14px">Crunching numbers…</div></div>';
+  state.lastResult=null;
   try {
-    const resp = await fetch('/api/analyze', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url}) });
-    if(!resp.ok) { const e = await resp.json(); throw new Error(e.detail||'Analysis failed'); }
-    const data = await resp.json();
-    console.log('API response:', JSON.stringify(data.item).substring(0, 500));
+    const resp=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
+    if(!resp.ok){const e=await resp.json();throw new Error(e.detail||'Analysis failed');}
+    const data=await resp.json();
+    console.log('API response:',JSON.stringify(data.item).substring(0,500));
 
-    // Fill form
-    if(data.item.brand) { document.getElementById('brand').value = data.item.brand; document.getElementById('brand').classList.add('green-border'); }
-    if(data.item.price>0) { document.getElementById('asking-price').value = data.item.price; document.getElementById('asking-price').classList.add('green-border'); }
-    if(data.retail?.retail_price>0) { document.getElementById('retail-price').value = data.retail.retail_price; document.getElementById('retail-price').classList.add('green-border'); }
+    if(data.item.brand){document.getElementById('brand').value=data.item.brand;document.getElementById('brand').classList.add('green-border');}
+    if(data.item.price>0){document.getElementById('asking-price').value=data.item.price;document.getElementById('asking-price').classList.add('green-border');}
+    if(data.retail?.retail_price>0){document.getElementById('retail-price').value=data.retail.retail_price;document.getElementById('retail-price').classList.add('green-border');}
 
-    // Fill category and subcategory
-    const itemCat = data.item.category;
-    const itemSubcat = data.item.subcategory;
-    console.log('Category:', itemCat, 'Subcategory:', itemSubcat);
-    if(itemCat && CATEGORIES[itemCat]) {
-      document.getElementById('category').value = itemCat;
-      updateSubcats();
-      if(itemSubcat) {
-        // Small delay to ensure subcats are populated
-        setTimeout(() => {
-          document.getElementById('subcategory').value = itemSubcat;
-        }, 50);
-      }
+    const itemCat=data.item.category, itemSubcat=data.item.subcategory;
+    if(itemCat&&CATEGORIES[itemCat]){document.getElementById('category').value=itemCat;updateSubcats();if(itemSubcat)setTimeout(()=>{document.getElementById('subcategory').value=itemSubcat;},50);}
+
+    if(data.item.condition){
+      const condMap={"Neu mit Etikett":"new_tags","Neu ohne Etikett":"new_no_tags","Sehr gut":"very_good","Gut":"good","Zufriedenstellend":"satisfactory","Neuf avec étiquette":"new_tags","Neuf sans étiquette":"new_no_tags","Très bon état":"very_good","Bon état":"good","Satisfaisant":"satisfactory","New with tags":"new_tags","New without tags":"new_no_tags","Very good":"very_good","Good":"good","Satisfactory":"satisfactory","Nieuw met label":"new_tags","Nieuw zonder label":"new_no_tags","Zeer goed":"very_good","Goed":"good","Voldoende":"satisfactory","Novo s etiketom":"new_tags","Novo bez etikete":"new_no_tags","Vrlo dobro":"very_good","Dobro":"good","Zadovoljavajuće":"satisfactory","Nuovo con cartellino":"new_tags","Nuovo senza cartellino":"new_no_tags","Ottime condizioni":"very_good","Buone condizioni":"good","Soddisfacente":"satisfactory","Nuevo con etiqueta":"new_tags","Nuevo sin etiqueta":"new_no_tags","Muy bueno":"very_good","Bueno":"good","Satisfactorio":"satisfactory","Nowy z metką":"new_tags","Nowy bez metki":"new_no_tags","Bardzo dobry":"very_good","Dobry":"good","Zadowalający":"satisfactory"};
+      const mapped=condMap[data.item.condition];
+      if(mapped){selectedCondition=mapped;document.querySelectorAll('.chip').forEach(c=>{c.classList.toggle('active',c.textContent===CONDITIONS.find(x=>x.value===mapped)?.label)});}
     }
 
-    // Fill condition
-    if(data.item.condition) {
-      const condMap = {
-        "Neu mit Etikett":"new_tags","Neu ohne Etikett":"new_no_tags","Sehr gut":"very_good","Gut":"good","Zufriedenstellend":"satisfactory",
-        "Neuf avec étiquette":"new_tags","Neuf sans étiquette":"new_no_tags","Très bon état":"very_good","Bon état":"good","Satisfaisant":"satisfactory",
-        "New with tags":"new_tags","New without tags":"new_no_tags","Very good":"very_good","Good":"good","Satisfactory":"satisfactory",
-        "Nieuw met label":"new_tags","Nieuw zonder label":"new_no_tags","Zeer goed":"very_good","Goed":"good","Voldoende":"satisfactory",
-        "Novo s etiketom":"new_tags","Novo bez etikete":"new_no_tags","Vrlo dobro":"very_good","Dobro":"good","Zadovoljavajuće":"satisfactory",
-        "Nuovo con cartellino":"new_tags","Nuovo senza cartellino":"new_no_tags","Ottime condizioni":"very_good","Buone condizioni":"good","Soddisfacente":"satisfactory",
-        "Nuevo con etiqueta":"new_tags","Nuevo sin etiqueta":"new_no_tags","Muy bueno":"very_good","Bueno":"good","Satisfactorio":"satisfactory",
-        "Nowy z metką":"new_tags","Nowy bez metki":"new_no_tags","Bardzo dobry":"very_good","Dobry":"good","Zadowalający":"satisfactory"
-      };
-      const mapped = condMap[data.item.condition];
-      console.log('Condition:', data.item.condition, '→ mapped:', mapped);
-      if(mapped) { selectedCondition=mapped; document.querySelectorAll('.chip').forEach(c=>{c.classList.toggle('active',c.textContent===CONDITIONS.find(x=>x.value===mapped)?.label)}); }
-    }
-    document.getElementById('eval-btn').disabled = false;
-    document.getElementById('clear-btn').style.display = 'block';
-    document.getElementById('divider-label').textContent = 'DETAILS (EDIT IF NEEDED)';
+    document.getElementById('eval-btn').disabled=false;
+    document.getElementById('clear-btn').style.display='block';
+    document.getElementById('divider-label').textContent='edit if needed';
 
-    state.autoFilled = true;
-    state.lastItem = data.item;
-    state.lastResult = data;
-
-    let msg = `✓ Analysis complete — ${data.item.brand||'Unknown'}: "${data.item.title}"`;
-    if(data.comparables?.length) msg += ` · ${data.comparables.length} comparables found`;
-    showStatus('success', msg);
-
+    state.autoFilled=true; state.lastItem=data.item; state.lastResult=data;
+    let msg=`Done — ${data.item.brand||'Item'}: "${data.item.title}"`;
+    if(data.comparables?.length) msg+=` · ${data.comparables.length} comparables`;
+    showStatus('success',msg);
     renderResults(data);
   } catch(e) {
-    showStatus('error', e.message || 'Analysis failed. Check the URL or try again.');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Analyze';
-  }
+    showStatus('error',e.message||'Analysis failed');
+    document.getElementById('results-area').innerHTML='<div class="card" style="text-align:center;padding:60px 30px;color:var(--muted)"><div style="font-size:40px;margin-bottom:16px">😔</div><div style="font-size:14px">Something went wrong. Try again?</div></div>';
+  } finally { btn.disabled=false; btn.textContent='Analyze'; }
 }
 
 async function handleEvaluate() {
-  const brand = document.getElementById('brand').value.trim();
+  const brand=document.getElementById('brand').value.trim();
   if(!brand) return;
-
-  if(state.lastResult && state.autoFilled) {
-    renderResults(state.lastResult);
-    return;
-  }
-
-  const btn = document.getElementById('eval-btn');
-  btn.disabled = true; btn.textContent = 'Evaluating...';
-
+  if(state.lastResult&&state.autoFilled){renderResults(state.lastResult);return;}
+  const btn=document.getElementById('eval-btn'); btn.disabled=true; btn.textContent='Evaluating…';
   try {
-    const resp = await fetch('/api/evaluate', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        brand, title: document.getElementById('subcategory').value,
-        price: parseFloat(document.getElementById('asking-price').value)||0,
-        condition: selectedCondition,
-        retail_price: parseFloat(document.getElementById('retail-price').value)||0,
-      })
-    });
-    const data = await resp.json();
-    state.lastResult = data;
-    state.lastItem = data.item;
-    document.getElementById('clear-btn').style.display = 'block';
+    const resp=await fetch('/api/evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brand,title:document.getElementById('subcategory').value,price:parseFloat(document.getElementById('asking-price').value)||0,condition:selectedCondition,retail_price:parseFloat(document.getElementById('retail-price').value)||0})});
+    const data=await resp.json(); state.lastResult=data; state.lastItem=data.item;
+    document.getElementById('clear-btn').style.display='block';
     renderResults(data);
-  } catch(e) {
-    showStatus('error', 'Evaluation failed');
-  } finally {
-    btn.disabled = false; btn.textContent = 'Evaluate';
-  }
+  } catch(e){showStatus('error','Evaluation failed');} finally{btn.disabled=false;btn.textContent='Evaluate';}
 }
 
-// ─── Render results ───
 function renderResults(data) {
-  const {evaluation:ev, comparables:comps, retail} = data;
-  const maxRange = ev.suggested_sell_max * 1.3;
-  const roi = ev.roi || 0;
-
-  let html = `<div class="fade-in">`;
+  const {evaluation:ev,comparables:comps,retail}=data;
+  const maxRange=ev.suggested_sell_max*1.3;
+  const roi=ev.roi||0;
+  let html='';
 
   // Verdict
-  html += `<div class="verdict-box card" style="background:${ev.verdict_color}11;border-color:${ev.verdict_color}33">
+  const vc=ev.verdict_color;
+  html+=`<div class="card verdict-box fade-in" style="background:${vc}0C;border-color:${vc}25">
     <div class="verdict-label">Verdict</div>
-    <div class="verdict-text mono" style="color:${ev.verdict_color}">${ev.verdict}</div>
+    <div class="verdict-text mono" style="color:${vc}">${ev.verdict}</div>
     <div class="verdict-sub">${ev.tier} tier · ${ev.data_source} pricing</div>
   </div>`;
 
   // AI insight
-  if(retail?.notes) html += `<div class="insight"><b style="color:#a5b4fc">💡 </b>${retail.notes}</div>`;
+  if(retail?.notes) html+=`<div class="insight fade-in">💡 ${retail.notes}</div>`;
 
-  // Retail + Avg resale + Market data
-  html += `<div class="grid2" style="margin-bottom:12px">
-    <div class="card" style="padding:10px 12px">
-      <div class="label" style="margin-bottom:3px">Retail Price</div>
-      <div class="mono" style="font-size:16px;font-weight:700;color:${retail?.retail_price?'var(--text)':'var(--muted)'}">${retail?.retail_price?'€'+retail.retail_price:'—'}</div>
-      ${retail?.source?`<div style="font-size:9px;color:var(--muted);margin-top:2px">${retail.source}</div>`:''}
+  // Market data
+  html+=`<div class="grid2 fade-in" style="margin-bottom:16px">
+    <div class="card" style="padding:14px 16px;text-align:center">
+      <div class="label" style="margin-bottom:4px">Retail Price</div>
+      <div class="mono" style="font-size:18px;font-weight:700;color:${retail?.retail_price?'var(--text)':'var(--muted)'}">${retail?.retail_price?'€'+retail.retail_price:'—'}</div>
+      ${retail?.source?`<div style="font-size:10px;color:var(--muted);margin-top:3px">${retail.source}</div>`:''}
     </div>
-    <div class="card" style="padding:10px 12px">
-      <div class="label" style="margin-bottom:3px">Market Value</div>
-      <div class="mono" style="font-size:16px;font-weight:700;color:${ev.market_value?'#10b981':'var(--muted)'}">${ev.market_value?'€'+ev.market_value.toFixed(0):'—'}</div>
-      <div style="font-size:9px;color:var(--muted);margin-top:2px">${ev.median_resale ? 'median of '+ev.num_comparables+' listings' : ev.data_source}</div>
+    <div class="card" style="padding:14px 16px;text-align:center">
+      <div class="label" style="margin-bottom:4px">Market Value</div>
+      <div class="mono" style="font-size:18px;font-weight:700;color:${ev.market_value?'var(--sage-dark)':'var(--muted)'}">${ev.market_value?'€'+ev.market_value.toFixed(0):'—'}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px">${ev.median_resale?'median of '+ev.num_comparables+' listings':ev.data_source}</div>
     </div>
   </div>`;
 
-  // Fee breakdown
-  if(ev.total_buy_cost > 0) {
-    html += `<div class="card" style="padding:12px 14px;margin-bottom:12px">
-      <div class="label" style="margin-bottom:8px">Cost Breakdown (when you buy)</div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:var(--text)">
-        <span>Item price</span><span class="mono">€${(ev.total_buy_cost - ev.buyer_fee - ev.shipping_est).toFixed(2)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:var(--muted)">
-        <span>+ Buyer protection (5% + €0.70)</span><span class="mono">€${ev.buyer_fee.toFixed(2)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:var(--muted)">
-        <span>+ Shipping (est.)</span><span class="mono">€${ev.shipping_est.toFixed(2)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;border-top:1px solid var(--border);padding-top:6px;margin-top:4px;color:var(--text)">
-        <span>Total acquisition cost</span><span class="mono">€${ev.total_buy_cost.toFixed(2)}</span>
-      </div>
+  // Cost breakdown
+  if(ev.total_buy_cost>0){
+    html+=`<div class="card fade-in" style="margin-bottom:16px">
+      <div class="label" style="margin-bottom:10px">Your cost to buy this item</div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Item price</span><span class="mono" style="font-weight:600">€${(ev.total_buy_cost-ev.buyer_fee-ev.shipping_est).toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;color:var(--muted)"><span>Buyer protection (5% + €0.70)</span><span class="mono">€${ev.buyer_fee.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;color:var(--muted)"><span>Shipping (est.)</span><span class="mono">€${ev.shipping_est.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;border-top:1.5px solid var(--border);padding-top:8px;margin-top:6px"><span>Total cost</span><span class="mono">€${ev.total_buy_cost.toFixed(2)}</span></div>
     </div>`;
   }
 
   // Seller note
-  html += `<div style="font-size:11px;color:#34d399;text-align:center;margin-bottom:12px;padding:6px;background:#10b98108;border-radius:6px">
-    Vinted has no seller fees — you keep 100% of the sell price
+  html+=`<div class="fade-in" style="font-size:12px;color:var(--sage-dark);text-align:center;margin-bottom:16px;padding:8px 12px;background:var(--sage-light);border-radius:10px;font-weight:500">
+    No seller fees on Vinted — you keep 100% of your sell price
   </div>`;
-
-  // Comparables
-  if(comps && comps.length > 0) {
-    html += `<div style="margin-bottom:16px"><div class="label" style="margin-bottom:8px">Similar Listings (${comps.length})</div>`;
-    comps.slice(0,8).forEach(c => {
-      html += `<div class="comp-item">
-        <div class="comp-title">${c.title||'—'}</div>
-        <div class="comp-price mono">€${(c.price||0).toFixed(0)}</div>
-      </div>`;
-    });
-    html += `</div>`;
-  }
 
   // Price bars
-  html += `<div style="padding:0 4px;margin-bottom:20px">`;
-  [{l:'Buy Below',v:ev.suggested_buy_max,c:'#6366f1'},{l:'Sell Low',v:ev.suggested_sell_min,c:'#f59e0b'},{l:'Sell High',v:ev.suggested_sell_max,c:'#10b981'}].forEach(b => {
-    const pct = maxRange>0 ? Math.min((b.v/maxRange)*100,100) : 50;
-    html += `<div class="bar-row"><div class="bar-label"><span>${b.l}</span><span class="mono" style="font-weight:700;color:${b.c};font-size:14px">€${b.v.toFixed(2)}</span></div>
+  html+=`<div class="card fade-in" style="margin-bottom:16px"><div class="label" style="margin-bottom:12px">Price guide</div>`;
+  [{l:'Buy below',v:ev.suggested_buy_max,c:'var(--accent)'},{l:'Sell low',v:ev.suggested_sell_min,c:'var(--warm)'},{l:'Sell high',v:ev.suggested_sell_max,c:'var(--sage)'}].forEach(b=>{
+    const pct=maxRange>0?Math.min((b.v/maxRange)*100,100):50;
+    html+=`<div class="bar-row"><div class="bar-label"><span>${b.l}</span><span class="mono" style="font-weight:600;color:${b.c};font-size:14px">€${b.v.toFixed(2)}</span></div>
       <div class="bar-track"><div class="bar-fill" style="width:${Math.max(pct,4)}%;background:${b.c}"></div></div></div>`;
   });
-  html += `</div>`;
+  html+=`</div>`;
 
-  // Stats
-  html += `<div class="stat-grid">`;
-  [{l:'Profit (low)',v:`€${ev.profit_min.toFixed(2)}`,c:ev.profit_min>0?'#10b981':'#e74c3c'},
-   {l:'Profit (high)',v:`€${ev.profit_max.toFixed(2)}`,c:ev.profit_max>0?'#10b981':'#e74c3c'},
-   {l:'ROI',v:`${roi.toFixed(0)}%`,c:roi>20?'#10b981':roi>0?'#f59e0b':'#e74c3c'}
-  ].forEach(s => {
-    html += `<div class="stat card"><div class="stat-label">${s.l}</div><div class="stat-value mono" style="color:${s.c}">${s.v}</div></div>`;
-  });
-  html += `</div>`;
+  // Profit stats
+  html+=`<div class="stat-grid fade-in">`;
+  [{l:'Profit (low)',v:`€${ev.profit_min.toFixed(2)}`,c:ev.profit_min>0?'var(--sage-dark)':'#C05050'},
+   {l:'Profit (high)',v:`€${ev.profit_max.toFixed(2)}`,c:ev.profit_max>0?'var(--sage-dark)':'#C05050'},
+   {l:'ROI',v:`${roi.toFixed(0)}%`,c:roi>20?'var(--sage-dark)':roi>0?'var(--warm)':'#C05050'}
+  ].forEach(s=>{html+=`<div class="stat"><div class="stat-label">${s.l}</div><div class="stat-value mono" style="color:${s.c}">${s.v}</div></div>`;});
+  html+=`</div>`;
 
-  html += `<div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:16px">
-    ${ev.price_range ? 'Comparable range: €'+ev.price_range.low.toFixed(0)+'–€'+ev.price_range.high.toFixed(0)+' · ' : ''}Profit = sell price − total acquisition cost
-  </div>`;
-  html += `<button class="save-btn" onclick="handleSave()">+ Save to Watchlist</button>`;
-  html += `</div>`;
+  // Comparables
+  if(comps&&comps.length>0){
+    html+=`<div class="card fade-in" style="margin-bottom:16px"><div class="label" style="margin-bottom:10px">Similar listings (${comps.length})</div>`;
+    comps.slice(0,8).forEach(c=>{html+=`<div class="comp-item"><div class="comp-title">${c.title||'—'}</div><div class="comp-price mono">€${(c.price||0).toFixed(0)}</div></div>`;});
+    if(ev.price_range) html+=`<div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center">Range: €${ev.price_range.low.toFixed(0)} – €${ev.price_range.high.toFixed(0)}</div>`;
+    html+=`</div>`;
+  }
 
-  document.getElementById('results-area').innerHTML = html;
+  html+=`<button class="save-btn fade-in" onclick="handleSave()">+ Save to watchlist</button>`;
+  document.getElementById('results-area').innerHTML=html;
 }
 
-// ─── Watchlist ───
 function handleSave() {
   if(!state.lastResult) return;
-  const ev = state.lastResult.evaluation;
-  const item = state.lastItem || state.lastResult.item;
-  const entry = {
-    id: Date.now(),
-    brand: document.getElementById('brand').value,
-    subcategory: document.getElementById('subcategory').value,
-    title: item?.title||'',
-    condition: CONDITIONS.find(c=>c.value===selectedCondition)?.label||selectedCondition,
-    tier: ev.tier,
-    verdict: ev.verdict, verdictColor: ev.verdict_color,
-    suggestedBuyMax: ev.suggested_buy_max.toFixed(2),
-    sellRange: `${ev.suggested_sell_min.toFixed(0)}–${ev.suggested_sell_max.toFixed(0)}`,
-    profitMax: ev.profit_max.toFixed(2),
-    url: document.getElementById('url-input').value.trim()||null,
-    date: new Date().toLocaleDateString('de-DE'),
-  };
+  const ev=state.lastResult.evaluation, item=state.lastItem||state.lastResult.item;
+  const entry={id:Date.now(),brand:document.getElementById('brand').value,subcategory:document.getElementById('subcategory').value,title:item?.title||'',condition:CONDITIONS.find(c=>c.value===selectedCondition)?.label||selectedCondition,tier:ev.tier,verdict:ev.verdict,verdictColor:ev.verdict_color,suggestedBuyMax:ev.suggested_buy_max.toFixed(2),sellRange:`${ev.suggested_sell_min.toFixed(0)}–${ev.suggested_sell_max.toFixed(0)}`,profitMax:ev.profit_max.toFixed(2),url:document.getElementById('url-input').value.trim()||null,date:new Date().toLocaleDateString('de-DE')};
   state.watchlist.unshift(entry);
-  localStorage.setItem('vinted-watchlist', JSON.stringify(state.watchlist));
-  updateWatchlistCount();
-  switchTab('watchlist');
+  localStorage.setItem('vinted-watchlist',JSON.stringify(state.watchlist));
+  updateWatchlistCount(); switchTab('watchlist');
 }
 
-function removeFromWatchlist(i) {
-  state.watchlist.splice(i,1);
-  localStorage.setItem('vinted-watchlist', JSON.stringify(state.watchlist));
-  updateWatchlistCount();
-  renderWatchlist();
-}
+function removeFromWatchlist(i){state.watchlist.splice(i,1);localStorage.setItem('vinted-watchlist',JSON.stringify(state.watchlist));updateWatchlistCount();renderWatchlist();}
 
 function renderWatchlist() {
-  const area = document.getElementById('watchlist-area');
-  if(!state.watchlist.length) {
-    area.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div style="font-size:14px">No saved items yet</div><div style="font-size:12px;margin-top:4px">Evaluate an item and save it here</div></div>';
-    return;
-  }
-  area.innerHTML = state.watchlist.map((w,i) => `
+  const area=document.getElementById('watchlist-area');
+  if(!state.watchlist.length){area.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div style="font-size:16px;font-weight:600">No saved items yet</div><div style="font-size:13px;margin-top:6px">Evaluate an item and save it here</div></div>';return;}
+  area.innerHTML=state.watchlist.map((w,i)=>`
     <div class="card wl-item fade-in">
       <div class="wl-top">
         <div style="flex:1;min-width:0">
-          <div class="wl-brand">${w.brand} — ${w.subcategory}</div>
+          <div class="wl-brand">${w.brand||'Unknown'} — ${w.subcategory}</div>
           ${w.title?`<div class="wl-title">${w.title}</div>`:''}
           <div class="wl-meta">${w.condition} · ${w.tier}</div>
         </div>
-        <div class="wl-badge" style="background:${w.verdictColor}22;color:${w.verdictColor}">${w.verdict}</div>
+        <div class="wl-badge" style="background:${w.verdictColor}18;color:${w.verdictColor}">${w.verdict}</div>
       </div>
       <div class="wl-prices">
-        <span>Buy ≤ <b style="color:var(--text)">€${w.suggestedBuyMax}</b></span>
-        <span>Sell <b style="color:var(--text)">€${w.sellRange}</b></span>
-        <span>Profit <b style="color:${parseFloat(w.profitMax)>0?'#10b981':'#e74c3c'}">€${w.profitMax}</b></span>
+        <span>Buy ≤ <b>€${w.suggestedBuyMax}</b></span>
+        <span>Sell <b>€${w.sellRange}</b></span>
+        <span>Profit <b style="color:${parseFloat(w.profitMax)>0?'var(--sage-dark)':'#C05050'}">€${w.profitMax}</b></span>
       </div>
       ${w.url?`<div class="wl-link"><a href="${w.url}" target="_blank" rel="noopener">View listing →</a></div>`:''}
       <div class="wl-footer">
         <span class="wl-date">${w.date}</span>
         <button class="wl-remove" onclick="removeFromWatchlist(${i})">Remove</button>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-function updateWatchlistCount() {
-  document.getElementById('wl-count').textContent = state.watchlist.length;
-}
-
-// ─── Utils ───
-function showStatus(type, msg) {
-  const cls = type==='loading'?'status-loading':type==='error'?'status-error':'status-success';
-  document.getElementById('status-area').innerHTML = `<div class="status-msg ${cls}">${msg}</div>`;
-}
-
-function handleClear() {
-  document.getElementById('brand').value='';
-  document.getElementById('asking-price').value='';
-  document.getElementById('retail-price').value='';
-  document.getElementById('url-input').value='';
-  document.getElementById('results-area').innerHTML='';
-  document.getElementById('status-area').innerHTML='';
-  document.getElementById('clear-btn').style.display='none';
-  document.getElementById('divider-label').textContent='OR FILL MANUALLY';
-  document.querySelectorAll('.green-border').forEach(e=>e.classList.remove('green-border'));
-  state.lastResult=null; state.lastItem=null; state.autoFilled=false;
-  document.getElementById('eval-btn').disabled=true;
-  document.getElementById('analyze-btn').disabled=true;
-}
+function updateWatchlistCount(){document.getElementById('wl-count').textContent=state.watchlist.length;}
+function showStatus(type,msg){const cls=type==='loading'?'status-loading':type==='error'?'status-error':'status-success';document.getElementById('status-area').innerHTML=`<div class="status-msg ${cls}">${msg}</div>`;}
+function handleClear(){document.getElementById('brand').value='';document.getElementById('asking-price').value='';document.getElementById('retail-price').value='';document.getElementById('url-input').value='';document.getElementById('results-area').innerHTML='<div class="card" style="text-align:center;padding:60px 30px;color:var(--muted)"><div style="font-size:40px;margin-bottom:16px">👗</div><div style="font-size:16px;font-weight:600;margin-bottom:6px">Paste a URL or fill in the details</div><div style="font-size:13px">Results will appear here</div></div>';document.getElementById('status-area').innerHTML='';document.getElementById('clear-btn').style.display='none';document.getElementById('divider-label').textContent='or fill manually';document.querySelectorAll('.green-border').forEach(e=>e.classList.remove('green-border'));state.lastResult=null;state.lastItem=null;state.autoFilled=false;document.getElementById('eval-btn').disabled=true;document.getElementById('analyze-btn').disabled=true;}
 
 init();
 </script>
