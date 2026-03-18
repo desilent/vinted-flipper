@@ -498,12 +498,61 @@ async def analyze_listing(req: AnalyzeRequest):
         raise HTTPException(400, "Invalid Vinted URL — expected format: vinted.xx/items/12345-...")
 
     log.info(f"Analyzing item {item_id}...")
+    search_terms = extract_search_terms(req.url)
 
-    # Step 1: Fetch item details
+    # Step 1: Try to fetch item details directly
     raw_item = await vinted.get_item(item_id)
-    if not raw_item:
-        # Fallback: try to parse from URL slug
-        search_terms = extract_search_terms(req.url)
+    item = None
+    found_in_search = False
+
+    if raw_item:
+        item = parse_item(raw_item)
+        log.info(f"Got item: {item['brand']} - {item['title']} @ €{item['price']}")
+        log.info(f"Category: {item['category']} / {item['subcategory']} | Condition: {item['condition']}")
+    else:
+        log.info(f"Item detail fetch failed, will try to find in search results")
+
+    # Step 2: Search for comparables (we need this anyway)
+    search_query = search_terms or str(item_id)
+    if item and item.get("brand"):
+        search_query = f"{item['brand']} {item['title']}".strip()[:60]
+
+    raw_comparables = await vinted.search(search_query, per_page=20)
+
+    # If item fetch failed, try to find our item in the search results
+    if not item:
+        for rc in raw_comparables:
+            if str(rc.get("id", "")) == str(item_id):
+                log.info(f"Found item {item_id} in search results!")
+                # Parse it like a full item using search data
+                brand = rc.get("brand_title", "")
+                title = rc.get("title", search_terms.title() if search_terms else "")
+                price_raw = rc.get("price", "0")
+                if isinstance(price_raw, dict):
+                    price = float(price_raw.get("amount", 0))
+                elif isinstance(price_raw, str):
+                    try:
+                        price = float(price_raw.replace(",", ".").replace("€", "").strip())
+                    except (ValueError, TypeError):
+                        price = 0.0
+                else:
+                    price = float(price_raw or 0)
+
+                cat, subcat = detect_category(title, "", None)
+                item = {
+                    "id": item_id, "title": title, "brand": brand,
+                    "price": price, "condition": rc.get("status", ""),
+                    "description": "", "url": req.url,
+                    "category": cat, "subcategory": subcat,
+                    "size": rc.get("size_title", ""),
+                    "photo": rc.get("photo", {}).get("url", "") if isinstance(rc.get("photo"), dict) else "",
+                }
+                found_in_search = True
+                log.info(f"From search: {brand} - {title} @ €{price} | {cat}/{subcat}")
+                break
+
+    # If still no item, fall back to URL slug
+    if not item:
         if search_terms:
             cat, subcat = detect_category(search_terms, "", None)
             item = {
@@ -511,21 +560,11 @@ async def analyze_listing(req: AnalyzeRequest):
                 "price": 0, "condition": "", "description": "", "url": req.url,
                 "category": cat, "subcategory": subcat,
             }
-            log.info(f"Item fetch failed, using URL slug: {search_terms} → {cat}/{subcat}")
+            log.info(f"Using URL slug fallback: {search_terms} → {cat}/{subcat}")
         else:
             raise HTTPException(502, "Could not fetch item from Vinted. Try again in a moment.")
-    else:
-        item = parse_item(raw_item)
-        log.info(f"Got item: {item['brand']} - {item['title']} @ €{item['price']}")
-        log.info(f"Category: {item['category']} / {item['subcategory']} | Condition: {item['condition']}")
 
-    # Step 2: Search for comparables
-    brand = item.get("brand", "")
-    title = item.get("title", "")
-    search_query = f"{brand} {title}".strip()[:60]
-
-    raw_comparables = await vinted.search(search_query, per_page=20)
-    # Filter out the item itself
+    # Filter out the item itself from comparables
     comparables = [
         parse_search_item(c) for c in raw_comparables
         if str(c.get("id", "")) != str(item_id)
