@@ -572,6 +572,8 @@ async def analyze_listing(req: AnalyzeRequest):
     log.info(f"Found {len(comparables)} comparable listings")
 
     # Step 3: Find retail price via AI
+    brand = item.get("brand", "")
+    title = item.get("title", "")
     retail_data = await find_retail_price(brand, title, item.get("description", ""))
     retail_price = retail_data.get("retail_price")
     log.info(f"Retail price: {'€' + str(retail_price) if retail_price else 'not found'}")
